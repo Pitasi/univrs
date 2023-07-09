@@ -1,3 +1,73 @@
-html, body {
-  background: red;
+:root {
+  --bg: rgb(255 250 240);
+  --text: rgb(80 80 80);
+  --pink: rgb(226 0 147);
+}
+
+/**/
+/* html, body { */
+/*   background: var(--bg); */
+/*   color: var(--text); */
+/*   font-family: monospace; */
+/*   font-size: 1.07rem; */
+/* } */
+/**/
+/* a { */
+/*   color: var(--pink); */
+/*   font-weight: bold; */
+/**/
+/*   &:hover { */
+/*     color: var(--pink); */
+/*   } */
+/**/
+/*   &:visited { */
+/*     color: var(--pink); */
+/*   } */
+/* } */
+
+.typography {
+  & blockquote, dd, dl, figure, h1, h2, h3, h4, h5, h6, hr, p, pre {
+    margin: 0;
+  }
+
+  & h1 {
+    letter-spacing: -.025em;
+    font-weight: 800;
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+    scroll-margin: 5rem;
+  }
+   
+  & h2 {
+    letter-spacing: -.025em;
+    font-weight: 600;
+    font-size: 1.5rem;
+    line-height: 2rem;
+    padding-bottom: 0.5rem;
+    scroll-margin: 5rem;
+
+    border: solid var(--pink) 1px;
+    border-width: 0 0 1px 0;
+  }
+
+  & p {
+    &:not(:first-child) {
+      margin-top: 1.5rem;
+    }
+
+    line-height: 1.75rem;
+  }
+
+  & a {
+    text-underline-offset: 4px;
+    text-decoration-line: underline;
+    color: var(--pink);
+    font-weight: 600;
+  }
+}
+
+.title-neu {
+	font-family: var(--font-darker-grotesque);
+	font-weight: 900;
+	text-shadow: #fe7dd0 .5px .5px, #fe7dd0 1px 1px, #fe7dd0 1.5px 1.5px, #fe7dd0 2px 2px;
 }
