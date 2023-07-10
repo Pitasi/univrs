@@ -1,6 +1,7 @@
 use std::fs::read_to_string;
 
-use comrak::{markdown_to_html, ComrakOptions};
+use comrak::plugins::syntect::SyntectAdapter;
+use comrak::{markdown_to_html_with_plugins, ComrakOptions, ComrakPlugins};
 
 use crate::rsc::render;
 
@@ -36,6 +37,8 @@ pub fn load_dir(path: &str) -> Vec<MarkdownFile> {
 pub fn parse(input: &str) -> (frontmatter::Yaml, String) {
     let (frontmatter, input) = parse_frontmatter(input);
 
+    let adapter = SyntectAdapter::new("InspiredGitHub");
+
     let options = ComrakOptions {
         parse: comrak::ComrakParseOptions {
             ..comrak::ComrakParseOptions::default()
@@ -56,8 +59,10 @@ pub fn parse(input: &str) -> (frontmatter::Yaml, String) {
             ..comrak::ComrakRenderOptions::default()
         },
     };
+    let mut plugins = ComrakPlugins::default();
+    plugins.render.codefence_syntax_highlighter = Some(&adapter);
 
-    let html = markdown_to_html(input, &options);
+    let html = markdown_to_html_with_plugins(input, &options, &plugins);
     (frontmatter, render(&html))
 }
 

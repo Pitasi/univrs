@@ -1,8 +1,10 @@
+use chrono::{DateTime, FixedOffset};
+
 use crate::markdown::load_dir;
 
 pub struct Article {
     pub title: String,
-    pub datetime: String,
+    pub datetime: DateTime<FixedOffset>,
     pub slug: String,
     pub content: String,
 }
@@ -12,7 +14,8 @@ pub fn list_articles() -> Vec<Article> {
         .into_iter()
         .map(|md| {
             let title = md.frontmatter["title"].as_str().unwrap().to_string();
-            let datetime = md.frontmatter["datetime"].as_str().unwrap().to_string();
+            let datetime_str = md.frontmatter["datetime"].as_str().unwrap();
+            let datetime = DateTime::parse_from_rfc3339(datetime_str).unwrap();
             Article {
                 title,
                 datetime,

@@ -1,9 +1,10 @@
 pub mod articles;
+pub mod icons;
 pub mod markdown;
 pub mod rsc;
 
 use articles::{get_article_by_slug, list_articles};
-use axum::{extract::Path, routing::get, Router};
+use axum::{extract::Path, http, routing::get, Router};
 use maud::{html, Markup, PreEscaped};
 
 use std::{
@@ -50,7 +51,7 @@ fn sidebar_header(img_src: Option<&str>, title: &str) -> Markup {
         header ."flex" ."h-10" ."w-full" ."flex-row" ."items-center" ."gap-1" {
             @if let Some(src) = img_src {
                 div ."flex" ."h-10" ."w-10" ."shrink-0" ."items-center" ."justify-center" ."rounded-xl" {
-                    img ."drop-shadow-border" ."w-auto" src=(src) alt=(title);
+                    img class="drop-shadow-border max-w-full w-auto h-auto" src=(src) alt=(title) loading="lazy" decoding="async";
                 }
             } @else {
                 div ."h-10" ."w-4";
@@ -70,7 +71,7 @@ fn sidebar_nav(slot: Markup) -> Markup {
     }
 }
 
-fn sidebar_nav_item(href: &str, icon: Option<Markup>, slot: Markup) -> Markup {
+fn sidebar_nav_item(href: &str, icon: &Option<Markup>, slot: Markup, active: bool) -> Markup {
     html! {
         li {
             a href=(href) class="
@@ -82,9 +83,9 @@ fn sidebar_nav_item(href: &str, icon: Option<Markup>, slot: Markup) -> Markup {
                 data-active:bg-yellow data-active:shadow-none -translate-x-0.5 -translate-y-0.5
                 border-2 border-black bg-white shadow-neu-2 hover:translate-x-0 hover:translate-y-0
                 hover:shadow-none
-            " {
+            " data-active=(active) {
                 @if let Some(icon) = icon {
-                    (icon)
+                    span class="mr-2 h-4 w-4" { (icon) }
                 }
                 (slot)
             }
@@ -92,8 +93,11 @@ fn sidebar_nav_item(href: &str, icon: Option<Markup>, slot: Markup) -> Markup {
     }
 }
 
-fn root_sidebar() -> Markup {
-    let nav = vec![("Home", "/"), ("Articles", "/articles")];
+fn root_sidebar(uri: &http::Uri) -> Markup {
+    let nav = vec![
+        ("Home", "/", Some(icons::home())),
+        ("Articles", "/articles", Some(icons::pen())),
+    ];
     html! {
         div class="
             hidden w-48 shrink-0 bg-lightviolet bg-pattern-hideout
@@ -102,12 +106,12 @@ fn root_sidebar() -> Markup {
             lg:border-r-2
         " {
             div class="space-y-8" {
-                (sidebar_header(Some("/static/icon.png"), "Antonio Pitasi"))
+                (sidebar_header(Some("/static/bulb.png"), "Antonio Pitasi"))
                 (sidebar_nav(html! {
-                    @for (name, href) in nav.iter() {
-                        (sidebar_nav_item(href, None, html! {
+                    @for (name, href, icon) in nav.iter() {
+                        (sidebar_nav_item(href, icon, html! {
                             (name)
-                        }))
+                        }, is_active(uri.path(), href)))
                     }
                 })
                 )
@@ -116,20 +120,41 @@ fn root_sidebar() -> Markup {
     }
 }
 
-fn root(slot: Markup) -> Markup {
+fn is_active(path: &str, href: &str) -> bool {
+    match href {
+        "/" => path == "/",
+        _ => path.starts_with(href),
+    }
+}
+
+struct Meta {
+    title: Option<String>,
+}
+
+impl Default for Meta {
+    fn default() -> Meta {
+        Meta { title: None }
+    }
+}
+
+fn root(uri: &http::Uri, meta: Meta, slot: Markup) -> Markup {
+    let title = match meta.title {
+        Some(title) => format!("{} - Antonio Pitasi", title),
+        None => "Antonio Pitasi".into(),
+    };
     html! {
         (maud::DOCTYPE)
         html lang="en" ."bg-floralwhite" {
             head {
                 meta charset="utf-8";
                 meta name="viewport" content="width=device-width, initial-scale=1";
-                title { "Antonio Pitasi" }
+                title { (title) }
                 link rel="stylesheet" type="text/css" href="/static/style.css";
                 link rel="stylesheet" type="text/css" href="/static/tailwind.css";
             }
             body .flex .min-h-screen  {
               .flex ."flex-1" .flex-row {
-                (root_sidebar())
+                (root_sidebar(uri))
                 (slot)
               }
             }
@@ -137,40 +162,44 @@ fn root(slot: Markup) -> Markup {
     }
 }
 
-async fn page_home() -> Markup {
-    root(html! {
-            main class="typography mx-auto my-20 max-w-2xl space-y-16 px-6 text-liver lg:px-14" {
-                section {
-        p {"
+async fn page_home(uri: http::Uri) -> Markup {
+    root(
+        &uri,
+        Meta::default(),
+        html! {
+                main class="typography mx-auto my-20 max-w-2xl space-y-16 px-6 text-liver lg:px-14" {
+                    section {
+            p {"
 I'm Antonio, a backend software engineer. I'm passionate about distributed
 systems and clean maintainable software. In my free time, I organize events
 with the local community I founded: pisa.dev.
 "}
 
-        p {"
+            p {"
 I'm currently working on exciting technology at Qredo. We aim to decentralize
 the private keys for your cryptocurrencies using our dMPC solution.
 "}
 
-        p {"
+            p {"
 Before that, I worked at Ignite (also known as Tendermint), the company that
 first created Proof-of-Stake and Cosmos SDK. My role was Senior Backend
 Engineer for the (now defunct) Emeris.
 "}
 
-        p {"
+            p {"
 Before diving into cryptocurrencies tech, I've cutted my teeth in fast-paced
 startups where I helped shaping products such as Traent and Zerynth.
 "}
 
-        p {"
+            p {"
 Sometimes I have over-engineering tendencies, such as my personal website.
 Most of the times I'm harmless though.
 "}
-        }
-        a href="/articles" { "Read my articles" }
-        }
-    })
+            }
+            a href="/articles" { "Read my articles" }
+            }
+        },
+    )
 }
 
 fn secondary_sidebar(slot: Markup) -> Markup {
@@ -186,41 +215,60 @@ sticky bottom-0 top-0 max-h-screen w-full space-y-8 overflow-auto border-black p
     }
 }
 
-fn articles(slot: Option<Markup>) -> Markup {
-    root(html! {
+fn articles(uri: &http::Uri, slot: Option<Markup>) -> Markup {
+    html! {
         div class="relative h-full w-full flex-row lg:grid lg:grid-cols-[20rem_minmax(0,1fr)]" {
             (secondary_sidebar( html! {
                 @for article in list_articles() {
-                    (sidebar_nav_item(&format!("/articles/{}", article.slug), None, html! {
-                        (article.title)
-                    }))
+                    @let href = format!("/articles/{}", article.slug);
+                    (sidebar_nav_item(&href, &None, html! {
+                        div class="flex flex-col" {
+                            span class="font-semibold" { (article.title) }
+                            span class="opacity-60" { (article.datetime.format("%B %d, %Y")) }
+                        }
+                    }, is_active(uri.path(), &href)))
                 }
             }))
-        }
-        @if let Some(slot) = slot {
-            div class="absolute inset-0 lg:static" {
-                (slot)
+            @if let Some(slot) = slot {
+                div class="absolute inset-0 lg:static" {
+                    (slot)
+                }
             }
         }
-    })
+    }
 }
 
-async fn page_articles() -> Markup {
-    articles(None)
+async fn page_articles(uri: http::Uri) -> Markup {
+    root(
+        &uri,
+        Meta {
+            title: Some("Articles".into()),
+        },
+        articles(&uri, None),
+    )
 }
 
-async fn page_article(Path(slug): Path<String>) -> Markup {
+async fn page_article(uri: http::Uri, Path(slug): Path<String>) -> Markup {
     let a = get_article_by_slug(slug).unwrap();
     let title = &a.title;
 
-    articles(Some(html! {
-        main class="typography relative min-h-full bg-floralwhite pb-24 lg:pb-0" {
-            article class="w-full bg-floralwhite p-8" {
-              div class="mx-auto max-w-2xl" {
-                h1 class="title-neu" { (title) }
-                (PreEscaped(a.content))
-              }
-            }
-        }
-    }))
+    root(
+        &uri,
+        Meta {
+            title: Some(title.into()),
+        },
+        articles(
+            &uri,
+            Some(html! {
+                main class="typography relative min-h-full bg-floralwhite pb-24 lg:pb-0" {
+                    article class="w-full bg-floralwhite p-8" {
+                      div class="mx-auto max-w-2xl" {
+                        h1 class="title-neu" { (title) }
+                        (PreEscaped(a.content))
+                      }
+                    }
+                }
+            }),
+        ),
+    )
 }
