@@ -7,12 +7,15 @@ edition = "2021"
 
 [dependencies]
 axum = "0.6"
+axum-login = { version = "0.5.0", features = ["sqlx", "postgres"] }
 chrono = "0.4.26"
 comrak = "0.18.0"
 frontmatter = "0.4.0"
 lol_html = "1.0.1"
 maud = { version = "0.25.0", features = ["axum"] }
 paste = "1.0.13"
+rand = { version = "0.8.5", features = ["min_const_gen"] }
+sqlx = { version = "0.6.1", features = ["postgres", "runtime-tokio-rustls"] }
 tokio = { version = "1", features = ["full"] }
 tower-http = { version = "0.4", features = ["full"] }
 tower-livereload = "0.8.0"
