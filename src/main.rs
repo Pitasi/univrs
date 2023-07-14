@@ -7,9 +7,10 @@ use articles::{get_article_by_slug, list_articles};
 use axum::{
     async_trait,
     extract::{FromRequestParts, Path},
-    http::{self, request::Parts, Request, StatusCode},
+    http::{self, request::Parts, HeaderMap, Request, StatusCode},
+    response::IntoResponse,
     routing::{get, post},
-    Extension, Router,
+    Extension, Form, Router,
 };
 use axum_login::{
     axum_sessions::{async_session::MemoryStore as SessionMemoryStore, SessionLayer},
@@ -18,7 +19,8 @@ use axum_login::{
 };
 use maud::{html, Markup, PreEscaped};
 use rand::Rng;
-use sqlx::postgres::PgPoolOptions;
+use serde::{Deserialize, Serialize};
+use sqlx::{postgres::PgPoolOptions, PgPool};
 use std::{
     env,
     error::Error,
@@ -153,18 +155,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     sqlx::migrate!().run(&pool).await?;
 
-    let user_store = PostgresStore::<User, Role>::new(pool);
+    let user_store = PostgresStore::<User, Role>::new(pool.clone());
     let auth_layer = AuthLayer::new(user_store, &secret);
 
-    async fn login_handler(mut auth: AuthContext) {
-        let pool = PgPoolOptions::new()
-            .max_connections(5)
-            .connect(
-                &env::var("DB_URL")
-                    .unwrap_or("postgres://postgres:mysecretpassword@localhost/univrs".into()),
-            )
-            .await
-            .unwrap();
+    async fn login_handler(mut auth: AuthContext, Extension(pool): Extension<PgPool>) {
         let mut conn = pool.acquire().await.unwrap();
         let user: User = sqlx::query_as("select * from users where id = 1")
             .fetch_one(&mut conn)
@@ -192,6 +186,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let router = Router::new()
         .nest("/", app)
         .nest("/components", components)
+        .layer(Extension(pool))
         .layer(auth_layer)
         .layer(session_layer);
 
@@ -417,12 +412,77 @@ async fn page_articles(uri: http::Uri) -> Markup {
     )
 }
 
-fn like_btn(user: Option<User>, slug: &str) -> Markup {
-    let count = match user {
-        Some(_) => 42,
-        None => 0,
+#[derive(Serialize, Deserialize)]
+pub struct LikeBtnPayload {
+    pub url: String,
+}
+
+async fn like_btn(pool: PgPool, user: Option<User>, url: &str, act: bool) -> Markup {
+    let mut conn = pool.acquire().await.unwrap();
+    let mut has_like = match &user {
+        Some(u) => sqlx::query_as::<_, Like>(
+            r#"
+            select * from likes
+            where user_id = $1
+            and url = $2
+        "#,
+        )
+        .bind(u.id)
+        .bind(url)
+        .fetch_one(&mut conn)
+        .await
+        .is_ok(),
+        None => false,
     };
-    let payload = format!(r#"{{"slug": "{slug}"}}"#);
+
+    if act && user.is_some() {
+        let u = user.unwrap();
+        if has_like {
+            sqlx::query(
+                r#"
+                    delete from likes
+                    where user_id = $1
+                    and url = $2
+                "#,
+            )
+            .bind(u.id)
+            .bind(url)
+            .execute(&mut conn)
+            .await
+            .unwrap();
+            has_like = false;
+        } else {
+            sqlx::query(
+                r#"
+                    insert into likes (user_id, url)
+                    values ($1, $2)
+                "#,
+            )
+            .bind(u.id)
+            .bind(url)
+            .execute(&mut conn)
+            .await
+            .unwrap();
+            has_like = true;
+        }
+    }
+
+    let count: i64 = sqlx::query_scalar(
+        r#"
+            select count(*) from likes
+            where url = $1
+        "#,
+    )
+    .bind(url)
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+
+    let payload = serde_json::to_string(&LikeBtnPayload {
+        url: url.to_string(),
+    })
+    .unwrap();
+
     html! {
         button
             class="inline-flex items-center justify-center text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset0 disabled:opacity-50 disabled:pointer-events-none bg-transparent hover:bg-slate-100 data-[state=open]:bg-transparent h-9 px-2 rounded-md"
@@ -433,14 +493,14 @@ fn like_btn(user: Option<User>, slug: &str) -> Markup {
             hx-vals=(payload)
             data-loading-disable {
                 div class="flex flex-row items-center justify-center gap-2 font-neu text-3xl font-bold" {
-                    (icons::heart())
+                    (icons::heart(has_like))
                     span { (count.to_string()) }
                 }
         }
     }
 }
 
-fn header(user: Option<User>) -> Markup {
+async fn header(pool: PgPool, user: Option<User>, uri: &http::Uri) -> Markup {
     html! {
     header class="sticky top-0 z-10 flex w-full items-center justify-between gap-2
         overflow-hidden border-b-2 border-black bg-yellow px-3 py-3 lg:justify-end lg:gap-4" {
@@ -450,7 +510,7 @@ fn header(user: Option<User>) -> Markup {
             style="opacity: 0; transform: translateY(30px) translateZ(0px);" {
             "Astro: writing static websites like it’s 2023"
         }
-        (like_btn(user, "sluggg"))
+        (like_btn(pool, user, uri.path(), false).await)
     }
     script {(PreEscaped(r#"
 var animation = anime({
@@ -469,11 +529,35 @@ window.addEventListener("scroll", () => {
     }
 }
 
-async fn page_like_btn(auth: AuthContext) -> Markup {
-    like_btn(auth.current_user, "sluggg")
+#[derive(Debug, sqlx::FromRow)]
+pub struct Like {
+    pub id: i64,
+    pub user_id: i64,
+    pub url: String,
 }
 
-async fn page_article(auth: AuthContext, uri: http::Uri, Path(slug): Path<String>) -> Markup {
+async fn page_like_btn(
+    auth: AuthContext,
+    Extension(pool): Extension<PgPool>,
+    Form(payload): Form<LikeBtnPayload>,
+) -> impl IntoResponse {
+    let mut header_map = HeaderMap::new();
+    if auth.current_user.is_none() {
+        header_map.insert("HX-Redirect", "/login".parse().unwrap());
+    }
+
+    (
+        header_map,
+        like_btn(pool, auth.current_user, &payload.url, true).await,
+    )
+}
+
+async fn page_article(
+    auth: AuthContext,
+    Extension(pool): Extension<PgPool>,
+    uri: http::Uri,
+    Path(slug): Path<String>,
+) -> Markup {
     let a = get_article_by_slug(slug).unwrap();
     let title = &a.title;
 
@@ -486,7 +570,7 @@ async fn page_article(auth: AuthContext, uri: http::Uri, Path(slug): Path<String
             &uri,
             Some(html! {
                 main class="typography relative min-h-full bg-floralwhite pb-24 lg:pb-0" {
-                    (header(auth.current_user))
+                    (header(pool, auth.current_user, &uri).await)
                     article class="w-full bg-floralwhite p-8" {
                       div class="mx-auto max-w-2xl" {
                         h1 class="title-neu" { (title) }
