@@ -1,22 +1,22 @@
-FROM rust:1.70-slim as builder
+# syntax=docker/dockerfile:1.3-labs
 
-RUN USER=root cargo new --bin app
+FROM rust:1.71-slim AS build
+
+RUN cargo new /app
+COPY Cargo.toml /app
+
 WORKDIR /app
+RUN --mount=type=cache,target=/usr/local/cargo/registry cargo build --release
 
-COPY Cargo.toml Cargo.lock ./
-RUN cargo build  --release
-RUN rm src/*.rs
+COPY ./src /app/src
+COPY ./migrations /app/migrations
 
-COPY ./src ./src
+RUN --mount=type=cache,target=/usr/local/cargo/registry <<EOF
+  set -e
+  touch /app/src/main.rs
+  cargo build --release
+EOF
 
-RUN cargo build --release
-
-FROM debian:buster-slim
-
-# Copy application binary from builder image
-COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/app /usr/local/bin
-
-EXPOSE 3000
-
-# Run the application
-CMD ["/usr/local/bin/app"]
+FROM debian:bullseye-slim AS app
+COPY --from=build /app/target/release/univrs /univrs
+CMD ["/univrs"]

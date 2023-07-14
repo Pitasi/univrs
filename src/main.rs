@@ -145,7 +145,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let pool = PgPoolOptions::new()
         .max_connections(5)
-        .connect("postgres://postgres:mysecretpassword@localhost/univrs")
+        .connect(
+            &env::var("DB_URL")
+                .unwrap_or("postgres://postgres:mysecretpassword@localhost/univrs".into()),
+        )
         .await?;
 
     sqlx::migrate!().run(&pool).await?;
@@ -156,7 +159,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     async fn login_handler(mut auth: AuthContext) {
         let pool = PgPoolOptions::new()
             .max_connections(5)
-            .connect("postgres://postgres:mysecretpassword@localhost/univrs")
+            .connect(
+                &env::var("DB_URL")
+                    .unwrap_or("postgres://postgres:mysecretpassword@localhost/univrs".into()),
+            )
             .await
             .unwrap();
         let mut conn = pool.acquire().await.unwrap();
@@ -201,8 +207,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     println!("Listening on http://{}", addr);
     axum::Server::bind(&addr)
         .serve(router.into_make_service())
-        .await
-        .unwrap();
+        .await?;
 
     Ok(())
 }
