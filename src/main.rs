@@ -207,7 +207,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route("/articles", get(page_articles))
         .route("/articles/:slug", get(page_article));
 
-    let components = Router::new().route("/like-btn", post(page_like_btn));
+    let components = Router::new()
+        .route("/like-btn", get(page_get_like_btn))
+        .route("/like-btn", post(page_post_like_btn));
 
     let router = Router::new()
         .nest("/", app)
@@ -458,6 +460,23 @@ pub struct LikeBtnPayload {
     pub url: String,
 }
 
+fn lazy_component(component_path: &str) -> Markup {
+    // todo: generalize this into suspense()
+    html! {
+        button
+            class="inline-flex items-center justify-center text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset0 disabled:opacity-50 disabled:pointer-events-none bg-transparent hover:bg-slate-100 data-[state=open]:bg-transparent h-9 px-2 rounded-md"
+            hx-get=(component_path)
+            hx-trigger="load"
+            hx-target="this"
+            hx-swap="outerHTML" {
+                div class="flex flex-row items-center justify-center gap-2 font-neu text-3xl font-bold" {
+                    (icons::heart(false))
+                    span { "..." }
+                }
+        }
+    }
+}
+
 async fn like_btn(pool: PgPool, user: Option<User>, url: &str, act: bool) -> Markup {
     let mut conn = pool.acquire().await.unwrap();
     let mut has_like = match &user {
@@ -551,7 +570,8 @@ async fn header(pool: PgPool, user: Option<User>, uri: &http::Uri) -> Markup {
             style="opacity: 0; transform: translateY(30px) translateZ(0px);" {
             "Astro: writing static websites like it’s 2023"
         }
-        (like_btn(pool, user, uri.path(), false).await)
+        // (like_btn(pool, user, uri.path(), false).await)
+        (lazy_component("/components/like-btn"))
     }
     script {(PreEscaped(r#"
 var animation = anime({
@@ -577,7 +597,15 @@ pub struct Like {
     pub url: String,
 }
 
-async fn page_like_btn(
+async fn page_get_like_btn(
+    auth: AuthContext,
+    Extension(pool): Extension<PgPool>,
+    uri: http::Uri,
+) -> impl IntoResponse {
+    like_btn(pool, auth.current_user, &uri.path(), false).await
+}
+
+async fn page_post_like_btn(
     auth: AuthContext,
     Extension(pool): Extension<PgPool>,
     Form(payload): Form<LikeBtnPayload>,
