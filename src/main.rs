@@ -3,12 +3,12 @@ pub mod icons;
 pub mod markdown;
 pub mod rsc;
 
-use articles::{get_article_by_slug, list_articles};
 use axum::{
     async_trait,
     extract::{FromRequestParts, Path},
     http::{self, request::Parts, HeaderMap, Request, StatusCode},
-    response::IntoResponse,
+    middleware::{self, Next},
+    response::{IntoResponse, Response},
     routing::{get, post},
     Extension, Form, Router,
 };
@@ -27,9 +27,16 @@ use std::{
     net::{IpAddr, SocketAddr},
     str::FromStr,
 };
-use tower_http::services::ServeDir;
+use tower_http::{
+    compression::CompressionLayer,
+    services::ServeDir,
+    trace::{self, TraceLayer},
+};
 #[cfg_attr(debug_assertions, allow(dead_code, unused_imports))]
 use tower_livereload::LiveReloadLayer;
+use tracing::Level;
+
+use crate::articles::ArticlesRepo;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, sqlx::Type)]
 #[allow(dead_code)]
@@ -139,6 +146,12 @@ fn not_htmx<Body>(req: &Request<Body>) -> bool {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    // tracing
+    tracing_subscriber::fmt()
+        .with_target(false)
+        .compact()
+        .init();
+
     // auth
     let secret = rand::thread_rng().gen::<[u8; 64]>();
 
@@ -172,14 +185,27 @@ async fn main() -> Result<(), Box<dyn Error>> {
         auth.logout().await;
     }
 
-    let files = ServeDir::new("static");
+    let files = ServeDir::new("static")
+        .precompressed_br()
+        .precompressed_gzip();
+
+    async fn set_cache_headers<B>(req: Request<B>, next: Next<B>) -> Response {
+        let mut res = next.run(req).await;
+        res.headers_mut()
+            .insert("cache-control", "public,max-age=604800".parse().unwrap());
+        res
+    }
+
+    let articles_repo = ArticlesRepo::new();
+
     let app = Router::new()
+        .nest_service("/static", files)
+        .layer(middleware::from_fn(set_cache_headers))
         .route("/login", get(login_handler))
         .route("/logout", get(logout_handler))
         .route("/", get(page_home))
         .route("/articles", get(page_articles))
-        .route("/articles/:slug", get(page_article))
-        .nest_service("/static", files);
+        .route("/articles/:slug", get(page_article));
 
     let components = Router::new().route("/like-btn", post(page_like_btn));
 
@@ -187,8 +213,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .nest("/", app)
         .nest("/components", components)
         .layer(Extension(pool))
+        .layer(Extension(articles_repo))
         .layer(auth_layer)
-        .layer(session_layer);
+        .layer(session_layer)
+        .layer(CompressionLayer::new())
+        .layer(
+            TraceLayer::new_for_http()
+                .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
+                .on_response(trace::DefaultOnResponse::new().level(Level::INFO)),
+        );
 
     #[cfg(debug_assertions)]
     let router = router.layer(tower_livereload::LiveReloadLayer::new().request_predicate(not_htmx));
@@ -199,7 +232,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     )
         .into();
 
-    println!("Listening on http://{}", addr);
+    tracing::info!("listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(router.into_make_service())
         .await?;
@@ -288,22 +321,24 @@ fn is_active(path: &str, href: &str) -> bool {
     }
 }
 
-struct Meta {
-    title: Option<String>,
+#[derive(Debug)]
+struct Meta<'a> {
+    title: Option<&'a str>,
 }
 
-impl Default for Meta {
-    fn default() -> Meta {
+impl<'a> Default for Meta<'a> {
+    fn default() -> Meta<'a> {
         Meta { title: None }
     }
 }
 
+#[tracing::instrument(level = "info")]
 fn root(uri: &http::Uri, meta: Meta, slot: Markup) -> Markup {
     let title = match meta.title {
         Some(title) => format!("{} - Antonio Pitasi", title),
         None => "Antonio Pitasi".into(),
     };
-    html! {
+    let res = html! {
         (maud::DOCTYPE)
         html lang="en" ."bg-floralwhite" {
             head {
@@ -315,15 +350,17 @@ fn root(uri: &http::Uri, meta: Meta, slot: Markup) -> Markup {
             }
             body class="flex min-h-screen" hx-ext="loading-states" {
               script src="/static/anime.min.js" {}
-              script src="https://unpkg.com/htmx.org@1.9.2" integrity="sha384-L6OqL9pRWyyFU3+/bjdSri+iIphTN/bvYyM37tICVyOJkWZLpP2vGn6VUEXgzg6h" crossorigin="anonymous" {}
-              script src="https://unpkg.com/htmx.org/dist/ext/loading-states.js" {}
+              script src="/static/htmx.min.js" integrity="sha384-L6OqL9pRWyyFU3+/bjdSri+iIphTN/bvYyM37tICVyOJkWZLpP2vGn6VUEXgzg6h" crossorigin="anonymous" {}
+              script src="/static/htmx-loading-states.js" {}
               .flex ."flex-1" .flex-row {
                 (root_sidebar(uri))
                 (slot)
               }
             }
         }
-    }
+    };
+
+    res
 }
 
 async fn page_home(uri: http::Uri) -> Markup {
@@ -379,11 +416,15 @@ sticky bottom-0 top-0 max-h-screen w-full space-y-8 overflow-auto border-black p
     }
 }
 
-fn articles(uri: &http::Uri, slot: Option<Markup>) -> Markup {
+fn articles(
+    uri: &http::Uri,
+    Extension(articles_repo): Extension<ArticlesRepo>,
+    slot: Option<Markup>,
+) -> Markup {
     html! {
         div class="relative h-full w-full flex-row lg:grid lg:grid-cols-[20rem_minmax(0,1fr)]" {
             (secondary_sidebar( html! {
-                @for article in list_articles() {
+                @for article in articles_repo.articles {
                     @let href = format!("/articles/{}", article.slug);
                     (sidebar_nav_item(&href, &None, html! {
                         div class="flex flex-col" {
@@ -402,13 +443,13 @@ fn articles(uri: &http::Uri, slot: Option<Markup>) -> Markup {
     }
 }
 
-async fn page_articles(uri: http::Uri) -> Markup {
+async fn page_articles(uri: http::Uri, articles_repo: Extension<ArticlesRepo>) -> Markup {
     root(
         &uri,
         Meta {
             title: Some("Articles".into()),
         },
-        articles(&uri, None),
+        articles(&uri, articles_repo, None),
     )
 }
 
@@ -555,25 +596,26 @@ async fn page_like_btn(
 async fn page_article(
     auth: AuthContext,
     Extension(pool): Extension<PgPool>,
+    articles_repo: Extension<ArticlesRepo>,
     uri: http::Uri,
     Path(slug): Path<String>,
 ) -> Markup {
-    let a = get_article_by_slug(slug).unwrap();
-    let title = &a.title;
+    let a = articles_repo.get_article_by_slug(slug).unwrap().clone();
 
     root(
         &uri,
         Meta {
-            title: Some(title.into()),
+            title: Some(&a.title),
         },
         articles(
             &uri,
+            articles_repo,
             Some(html! {
                 main class="typography relative min-h-full bg-floralwhite pb-24 lg:pb-0" {
                     (header(pool, auth.current_user, &uri).await)
                     article class="w-full bg-floralwhite p-8" {
                       div class="mx-auto max-w-2xl" {
-                        h1 class="title-neu" { (title) }
+                        h1 class="title-neu" { (a.title) }
                         (PreEscaped(a.content))
                       }
                     }

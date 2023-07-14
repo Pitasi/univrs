@@ -39,6 +39,7 @@ macro_rules! component_def {
     };
 }
 
+#[tracing::instrument(level = "info")]
 pub fn render(html: &str) -> String {
     let mut output = vec![];
     let mut rewriter = HtmlRewriter::new(
