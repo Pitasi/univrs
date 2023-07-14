@@ -18,5 +18,8 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry <<EOF
 EOF
 
 FROM debian:bullseye-slim AS app
+WORKDIR /app
 COPY --from=build /app/target/release/univrs /univrs
+COPY static/ static/
+COPY articles/ articles/
 CMD ["/univrs"]
