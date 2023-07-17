@@ -638,7 +638,7 @@ async fn page_articles(
     root(
         &uri,
         Meta {
-            title: Some("Articles".into()),
+            title: Some("Articles"),
         },
         articles(&uri, articles_repo, None),
         auth.current_user,
@@ -791,7 +791,7 @@ async fn page_get_like_btn(
     Extension(pool): Extension<PgPool>,
     uri: http::Uri,
 ) -> impl IntoResponse {
-    like_btn(pool, auth.current_user, &uri.path(), false).await
+    like_btn(pool, auth.current_user, uri.path(), false).await
 }
 
 async fn page_post_like_btn(

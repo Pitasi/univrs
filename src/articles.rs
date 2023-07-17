@@ -39,3 +39,9 @@ impl ArticlesRepo {
         self.articles.iter().find(|p| p.slug == slug)
     }
 }
+
+impl Default for ArticlesRepo {
+    fn default() -> Self {
+        Self::new()
+    }
+}
