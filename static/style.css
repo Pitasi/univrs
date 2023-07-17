@@ -1,8 +1,16 @@
+@font-face {
+  font-family: 'Darker Grotesque';
+  src: url("/static/DarkerGrotesque-VariableFont_wght.ttf") format("ttf");
+  font-weight: 100 900;
+}
+
 :root {
   --bg: rgb(255 250 240);
   --text: rgb(80 80 80);
   --pink: rgb(226 0 147);
   --light-gray: rgb(226 232 240);
+
+  --font-darker-grotesque: 'Darker Grotesque';
 }
 
 .typography {

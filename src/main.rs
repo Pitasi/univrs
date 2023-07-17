@@ -406,15 +406,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 fn sidebar_header(img_src: Option<&str>, title: &str) -> Markup {
     html! {
-        header class="flex h-10 w-full flex-row items-center gap-2" {
+        header class="flex h-10 w-full flex-row items-center gap-1" {
             @if let Some(src) = img_src {
                 div ."flex" ."h-8" ."w-8" ."shrink-0" ."items-center" ."justify-center" ."rounded-xl" {
                     img class="drop-shadow-border max-w-full w-auto h-auto" src=(src) alt=(title) loading="lazy" decoding="async";
                 }
             } @else {
-                div ."h-10" ."w-4";
+                div class="h-10 w-4" { }
             }
-            div ."flex" ."flex-col" ."font-neu" ."text-md" ."font-bold" ."leading-none" ."tracking-tight" ."text-black" {
+            div class="flex flex-col font-neu text-xl font-bold leading-none tracking-tight text-black" {
                 span { (title) }
             }
         }
