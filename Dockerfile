@@ -2,6 +2,12 @@
 
 FROM rust:1.71-slim AS build
 
+RUN apt update && apt install -y \
+  libpq-dev \
+  libssl-dev \
+  pkg-config \
+  && rm -rf /var/lib/apt/lists/*
+
 RUN cargo new /app
 COPY Cargo.toml /app
 
