@@ -157,7 +157,7 @@ fn not_htmx<Body>(req: &Request<Body>) -> bool {
 fn build_oauth_client() -> BasicClient {
     let client_id = env::var("CLIENT_ID").expect("Missing CLIENT_ID!");
     let client_secret = env::var("CLIENT_SECRET").expect("Missing CLIENT_SECRET!");
-    let redirect_url = "http://localhost:3000/auth/callback".to_string();
+    let redirect_url = env::var("CALLBACK_URL").expect("Missing CALLBACK_URL!");
 
     let auth_url =
         AuthUrl::new("https://poetic-camel-60.clerk.accounts.dev/oauth/authorize".to_string())
