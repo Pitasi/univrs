@@ -408,8 +408,13 @@ fn sidebar_header(img_src: Option<&str>, title: &str) -> Markup {
     html! {
         header class="flex h-10 w-full flex-row items-center gap-1" {
             @if let Some(src) = img_src {
-                div ."flex" ."h-8" ."w-8" ."shrink-0" ."items-center" ."justify-center" ."rounded-xl" {
-                    img class="drop-shadow-border max-w-full w-auto h-auto" src=(src) alt=(title) loading="lazy" decoding="async";
+                div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" {
+                    img
+                        class="w-full h-full object-contain"
+                        src=(src)
+                        alt=(title)
+                        loading="lazy"
+                        decoding="async";
                 }
             } @else {
                 div class="h-10 w-4" { }
