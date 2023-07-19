@@ -25,6 +25,8 @@ EOF
 
 FROM debian:bullseye-slim AS app
 WORKDIR /app
+RUN apt-get update && apt-get install -y ca-certificates libssl-dev && apt-get clean
+
 COPY --from=build /app/target/release/univrs /univrs
 COPY static/ static/
 COPY articles/ articles/
