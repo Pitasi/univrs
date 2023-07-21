@@ -179,7 +179,7 @@ If you’re wondering why they’re called “_islands_”, it’s a name conied
 
 Let’s consider this page of my blog, its layout is:
 
-<Image style={{maxWidth: "min(100%,500px)"}} height={1656} width={1481} src="https://assets.anto.pt/articles/astro/astro-2.png" alt="Diagram of the layout of this blog" />
+<img style="max-width: min(100%,500px)" height={1656} width={1481} src="https://assets.anto.pt/articles/astro/astro-2.png" alt="Diagram of the layout of this blog" />
 
 Unsurprisingly I have a `Content.astro` and a `Footer.astro` file. I also want to keep the nice effect on the navbar (scrolling up a little makes the navbar reappears) and more importantly the “toggle” button on mobile.
 
@@ -315,7 +315,7 @@ flavors: light and dark.
 <img
   src="https://assets.anto.pt/articles/astro/light-dark.gif"
   alt="Gif showing that switching from dark to light theme on the site loads a different set of images"
-  style={{width: "400px", height: "406px" }}
+  style="width: 400px; height: 406px"
 />
 
 This was made possible by a simple wrapper component I made and used like this:

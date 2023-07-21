@@ -17,22 +17,23 @@ pub struct ArticlesRepo {
 
 impl ArticlesRepo {
     pub fn new() -> Self {
-        Self {
-            articles: load_dir("./articles")
-                .into_iter()
-                .map(|md| {
-                    let title = md.frontmatter["title"].as_str().unwrap().to_string();
-                    let datetime_str = md.frontmatter["datetime"].as_str().unwrap();
-                    let datetime = DateTime::parse_from_rfc3339(datetime_str).unwrap();
-                    Article {
-                        title,
-                        datetime,
-                        slug: md.name.clone(),
-                        content: md.content,
-                    }
-                })
-                .collect::<Vec<_>>(),
-        }
+        let mut articles = load_dir("./articles")
+            .into_iter()
+            .map(|md| {
+                let title = md.frontmatter["title"].as_str().unwrap().to_string();
+                let datetime_str = md.frontmatter["datetime"].as_str().unwrap();
+                let datetime = DateTime::parse_from_rfc3339(datetime_str).unwrap();
+                Article {
+                    title,
+                    datetime,
+                    slug: md.name.clone(),
+                    content: md.content,
+                }
+            })
+            .collect::<Vec<_>>();
+        articles.sort_by(|a, b| b.datetime.cmp(&a.datetime));
+
+        Self { articles }
     }
 
     pub fn get_article_by_slug(&self, slug: String) -> Option<&Article> {
