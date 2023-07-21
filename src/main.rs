@@ -561,12 +561,26 @@ fn is_active(path: &str, href: &str) -> bool {
     }
 }
 
+// maud helpers
+
 #[derive(Default, Debug)]
 struct Meta<'a> {
     title: Option<&'a str>,
 }
 
-// maud helpers
+impl<'a> Render for Meta<'a> {
+    fn render(&self) -> Markup {
+        let title = match self.title {
+            Some(title) => format!("{} - Antonio Pitasi", title),
+            None => "Antonio Pitasi".into(),
+        };
+        html! {
+            meta charset="utf-8";
+            meta name="viewport" content="width=device-width, initial-scale=1";
+            title { (title) }
+        }
+    }
+}
 
 struct StaticFile<'a>(&'a str);
 
@@ -577,7 +591,7 @@ impl<'a> Render for StaticFile<'a> {
         let input = File::open(&path).expect(format!("failed to open file: {}", &path).as_str());
         let reader = BufReader::new(input);
         let digest = hash::sha256_digest(reader).expect("failed to hash css file");
-        let file_url = format!("{}?{}", path, &HEXLOWER.encode(digest.as_ref())[..5]);
+        let file_url = format!("/{}?{}", path, &HEXLOWER.encode(digest.as_ref())[..5]);
         PreEscaped(file_url)
     }
 }
@@ -602,17 +616,11 @@ impl<'a> Render for CssFile<'a> {
 
 #[tracing::instrument(level = "info")]
 fn root(uri: &http::Uri, meta: Meta, slot: Markup, user: Option<User>) -> Markup {
-    let title = match meta.title {
-        Some(title) => format!("{} - Antonio Pitasi", title),
-        None => "Antonio Pitasi".into(),
-    };
     let res = html! {
         (maud::DOCTYPE)
         html lang="en" ."bg-floralwhite" {
             head {
-                meta charset="utf-8";
-                meta name="viewport" content="width=device-width, initial-scale=1";
-                title { (title) }
+                (meta)
                 (CssFile::from("style.css"))
                 (CssFile::from("tailwind.css"))
             }
