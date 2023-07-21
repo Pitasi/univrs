@@ -2,6 +2,7 @@ pub mod articles;
 pub mod hash;
 pub mod icons;
 pub mod markdown;
+pub mod pages;
 pub mod rsc;
 
 use axum::{
@@ -9,25 +10,20 @@ use axum::{
     extract::{FromRequestParts, Path, Query},
     http::{self, request::Parts, HeaderMap, Request, StatusCode},
     middleware::{self, Next},
-    response::{IntoResponse, Redirect, Response},
+    response::{IntoResponse, Response},
     routing::{get, post},
     Extension, Form, Router,
 };
 use axum_login::{
-    axum_sessions::{
-        async_session::MemoryStore as SessionMemoryStore,
-        extractors::{ReadableSession, WritableSession},
-        SameSite, SessionLayer,
-    },
-    secrecy::SecretVec,
+    axum_sessions::{async_session::MemoryStore as SessionMemoryStore, SameSite, SessionLayer},
     AuthLayer, AuthUser, PostgresStore,
 };
 use data_encoding::HEXLOWER;
 use maud::{html, Markup, PreEscaped, Render};
 use oauth2::{
-    basic::BasicClient, reqwest::async_http_client, AuthType, AuthUrl, AuthorizationCode, ClientId,
-    ClientSecret, CsrfToken, RedirectUrl, Scope, TokenResponse, TokenUrl,
+    basic::BasicClient, AuthType, AuthUrl, ClientId, ClientSecret, RedirectUrl, TokenUrl,
 };
+use pages::auth::{AuthContext, User};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use sqlx::{postgres::PgPoolOptions, PgPool};
@@ -48,136 +44,10 @@ use tower_http::{
 use tower_livereload::LiveReloadLayer;
 use tracing::Level;
 
-use crate::articles::ArticlesRepo;
-
-#[derive(Debug, Clone, PartialEq, PartialOrd, sqlx::Type)]
-#[allow(dead_code)]
-enum Role {
-    User,
-    Admin,
-}
-
-#[derive(Debug, Clone, sqlx::FromRow)]
-#[allow(dead_code)]
-struct User {
-    id: i64,
-    role: Role,
-    email: String,
-    username: Option<String>,
-    picture: Option<String>,
-}
-
-impl AuthUser<i64, Role> for User {
-    fn get_id(&self) -> i64 {
-        self.id
-    }
-
-    fn get_password_hash(&self) -> SecretVec<u8> {
-        SecretVec::new("password".into())
-    }
-
-    fn get_role(&self) -> Option<Role> {
-        Some(self.role.clone())
-    }
-}
-
-/// Example how to create an Admin user guard
-/// Can be modified to support any type of permission
-struct RequireAdmin(User);
-struct RequireUser(User);
-struct MaybeUser(Option<User>);
-
-#[async_trait]
-impl<S> FromRequestParts<S> for RequireAdmin
-where
-    S: Send + Sync,
-{
-    type Rejection = StatusCode;
-
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let Extension(user): Extension<User> = Extension::from_request_parts(parts, state)
-            .await
-            .map_err(|_err| StatusCode::FORBIDDEN)?;
-
-        if user
-            .get_role()
-            .map_or(false, |role| matches!(role, Role::Admin))
-        {
-            Ok(RequireAdmin(user))
-        } else {
-            Err(StatusCode::FORBIDDEN)
-        }
-    }
-}
-
-#[async_trait]
-impl<S> FromRequestParts<S> for RequireUser
-where
-    S: Send + Sync,
-{
-    type Rejection = StatusCode;
-
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let Extension(user): Extension<User> = Extension::from_request_parts(parts, state)
-            .await
-            .map_err(|_err| StatusCode::FORBIDDEN)?;
-
-        if user
-            .get_role()
-            .map_or(false, |role| matches!(role, Role::User))
-        {
-            Ok(RequireUser(user))
-        } else {
-            Err(StatusCode::FORBIDDEN)
-        }
-    }
-}
-
-#[async_trait]
-impl<S> FromRequestParts<S> for MaybeUser
-where
-    S: Send + Sync,
-{
-    type Rejection = StatusCode;
-
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let x: Result<Extension<User>, _> = Extension::from_request_parts(parts, state).await;
-        match x {
-            Ok(Extension(user)) => Ok(MaybeUser(Some(user))),
-            Err(err) => {
-                println!("error: {:?}", err);
-                Ok(MaybeUser(None))
-            }
-        }
-    }
-}
-
-type AuthContext = axum_login::extractors::AuthContext<i64, User, PostgresStore<User, Role>, Role>;
+use crate::{articles::ArticlesRepo, pages::auth::Role};
 
 fn not_htmx<Body>(req: &Request<Body>) -> bool {
     !req.headers().contains_key("hx-request")
-}
-
-fn build_oauth_client() -> BasicClient {
-    let client_id = env::var("CLIENT_ID").expect("Missing CLIENT_ID!");
-    let client_secret = env::var("CLIENT_SECRET").expect("Missing CLIENT_SECRET!");
-    let redirect_url = env::var("CALLBACK_URL").expect("Missing CALLBACK_URL!");
-
-    let auth_url =
-        AuthUrl::new("https://poetic-camel-60.clerk.accounts.dev/oauth/authorize".to_string())
-            .expect("Invalid authorization endpoint URL");
-    let token_url =
-        TokenUrl::new("https://poetic-camel-60.clerk.accounts.dev/oauth/token".to_string())
-            .expect("Invalid token endpoint URL");
-
-    BasicClient::new(
-        ClientId::new(client_id),
-        Some(ClientSecret::new(client_secret)),
-        auth_url,
-        Some(token_url),
-    )
-    .set_redirect_uri(RedirectUrl::new(redirect_url).unwrap())
-    .set_auth_type(AuthType::RequestBody)
 }
 
 #[tokio::main]
@@ -209,144 +79,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let user_store = PostgresStore::<User, Role>::new(pool.clone());
     let auth_layer = AuthLayer::new(user_store, &secret);
 
-    async fn login_handler(
-        Extension(client): Extension<BasicClient>,
-        mut session: WritableSession,
-    ) -> impl IntoResponse {
-        // Generate the authorization URL to which we'll redirect the user.
-        let (auth_url, csrf_state) = client
-            .authorize_url(CsrfToken::new_random)
-            .add_scope(Scope::new("email".to_string()))
-            .add_scope(Scope::new("profile".to_string()))
-            .url();
-
-        // Store the csrf_state in the session so we can assert equality in the callback
-        session.insert("csrf_state", csrf_state).unwrap();
-
-        // Redirect to your oauth service
-        Redirect::to(auth_url.as_ref())
-    }
-
-    async fn logout_handler(mut auth: AuthContext) {
-        dbg!("Logging out user: {}", &auth.current_user);
-        auth.logout().await;
-    }
-
-    #[derive(Debug, Deserialize)]
-    struct AuthRequest {
-        code: String,
-        state: CsrfToken,
-    }
-
-    async fn oauth_callback_handler(
-        mut auth: AuthContext,
-        Query(query): Query<AuthRequest>,
-        Extension(pool): Extension<PgPool>,
-        Extension(oauth_client): Extension<BasicClient>,
-        session: ReadableSession,
-    ) -> impl IntoResponse {
-        println!("Running oauth callback {query:?}");
-        // Compare the csrf state in the callback with the state generated before the
-        // request
-        let original_csrf_state: CsrfToken = session.get("csrf_state").unwrap();
-        let query_csrf_state = query.state.secret();
-        let csrf_state_equal = original_csrf_state.secret() == query_csrf_state;
-
-        drop(session);
-
-        if !csrf_state_equal {
-            println!("csrf state is invalid, cannot login",);
-
-            // Return to some error
-            return Redirect::to("/error");
-        }
-
-        println!("Getting oauth token");
-        // Get an auth token
-        let token = oauth_client
-            .exchange_code(AuthorizationCode::new(query.code))
-            .request_async(async_http_client)
-            .await
-            .unwrap();
-
-        // Use auth token to fetch user info
-        let user_client = reqwest::Client::new();
-        let res = user_client
-            .get("https://poetic-camel-60.clerk.accounts.dev/oauth/userinfo")
-            .headers(
-                vec![(
-                    "Authorization".parse().unwrap(),
-                    format!("Bearer {}", token.access_token().secret())
-                        .parse()
-                        .unwrap(),
-                )]
-                .into_iter()
-                .collect(),
-            )
-            .send()
-            .await
-            .unwrap();
-
-        match res.status() {
-            StatusCode::OK => {}
-            _ => {
-                return Redirect::to("/error");
-            }
-        };
-
-        #[derive(Deserialize)]
-        struct TokenResponse {
-            email: String,
-            username: Option<String>,
-            picture: Option<String>,
-        }
-
-        let user_info = res.json::<TokenResponse>().await.unwrap();
-        // {
-        //   "object": "oauth_user_info",
-        //   "instance_id": "ins_2ShOHnzrS6xAgpuGmo2Cf1CmZpN",
-        //   "email": "antonio@pitasi.dev",
-        //   "email_verified": true,
-        //   "family_name": "Pitasi",
-        //   "given_name": "Antonio",
-        //   "name": "Antonio Pitasi",
-        //   "username": "pitasi",
-        //   "picture": "https://storage.googleapis.com/images.clerk.dev/oauth_github/img_2ShTHTM2KJoiONZ8SWVdb0p0NO0.jpeg",
-        //   "user_id": "user_2ShTH93h3nTyatUwWj0pyuVW9GW"
-        // }
-
-        // Fetch the user and log them in
-        let mut conn = pool.acquire().await.unwrap();
-        let user = sqlx::query_as("select * from users where email = $1")
-            .bind(&user_info.email)
-            .fetch_one(&mut conn)
-            .await;
-
-        match user {
-            Ok(user) => {
-                println!("User found: {:?}", user);
-                auth.login(&user).await.unwrap();
-            }
-            Err(e) => {
-                println!("User not found: {:?}", e);
-                let user = sqlx::query_as(
-                    "insert into users (email, username, picture, role) values ($1, $2, $3, $4) returning *",
-                )
-                .bind(&user_info.email)
-                .bind(&user_info.username)
-                .bind(&user_info.picture)
-                .bind(Role::User)
-                .fetch_one(&mut conn)
-                .await
-                .unwrap();
-                println!("User created: {:?}", user);
-                auth.login(&user).await.unwrap();
-            }
-        }
-
-        Redirect::to("/")
-    }
-
     let files = ServeDir::new("static")
         .precompressed_br()
         .precompressed_gzip();
@@ -358,6 +90,28 @@ async fn main() -> Result<(), Box<dyn Error>> {
         res
     }
 
+    fn build_oauth_client() -> BasicClient {
+        let client_id = env::var("CLIENT_ID").expect("Missing CLIENT_ID!");
+        let client_secret = env::var("CLIENT_SECRET").expect("Missing CLIENT_SECRET!");
+        let redirect_url = env::var("CALLBACK_URL").expect("Missing CALLBACK_URL!");
+
+        let auth_url =
+            AuthUrl::new("https://poetic-camel-60.clerk.accounts.dev/oauth/authorize".to_string())
+                .expect("Invalid authorization endpoint URL");
+        let token_url =
+            TokenUrl::new("https://poetic-camel-60.clerk.accounts.dev/oauth/token".to_string())
+                .expect("Invalid token endpoint URL");
+
+        BasicClient::new(
+            ClientId::new(client_id),
+            Some(ClientSecret::new(client_secret)),
+            auth_url,
+            Some(token_url),
+        )
+        .set_redirect_uri(RedirectUrl::new(redirect_url).unwrap())
+        .set_auth_type(AuthType::RequestBody)
+    }
+
     let oauth_client = build_oauth_client();
 
     let articles_repo = ArticlesRepo::new();
@@ -365,10 +119,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let app = Router::new()
         .nest_service("/static", files)
         .layer(middleware::from_fn(set_cache_headers))
-        .route("/auth/login", get(login_handler))
-        .route("/auth/callback", get(oauth_callback_handler))
-        .route("/auth/logout", get(logout_handler))
-        .route("/", get(page_home))
+        .route("/auth/login", get(pages::auth::login_handler))
+        .route("/auth/callback", get(pages::auth::oauth_callback_handler))
+        .route("/auth/logout", get(pages::auth::logout_handler))
+        .route("/", get(pages::homepage::handler))
         .route("/articles", get(page_articles))
         .route("/articles/:slug", get(page_article));
 
@@ -640,129 +394,6 @@ fn root(uri: &http::Uri, meta: Meta, slot: Markup, user: Option<User>) -> Markup
     res
 }
 
-async fn page_home(uri: http::Uri, Extension(auth): Extension<AuthContext>) -> Markup {
-    let socials = [
-        ("Twitter", icons::twitter(), "https://twitter.com/zaphodias"),
-        ("Github", icons::github(), "https://github.com/pitasi"),
-        (
-            "LinkedIn",
-            icons::linkedin(),
-            "https://www.linkedin.com/in/pitasi/",
-        ),
-    ];
-
-    let work_experiences = [
-        (
-            "Qredo",
-            "Blockchain Engineer",
-            "/static/companies/qredo.png",
-            "2022",
-            "Present",
-        ),
-        (
-            "Ignite (fka Tendermint)",
-            "Sr. Backend Engineer",
-            "/static/companies/tendermint.svg",
-            "2022",
-            "2022",
-        ),
-        (
-            "Geckosoft",
-            "Backend Engineer",
-            "/static/companies/geckosoft.svg",
-            "2020",
-            "2022",
-        ),
-        (
-            "Nextworks",
-            "Backend Engineer",
-            "/static/companies/nextworks.svg",
-            "2019",
-            "2020",
-        ),
-        (
-            "Zerynth",
-            "Fullstack developer",
-            "/static/companies/zerynth.svg",
-            "2018",
-            "2019",
-        ),
-    ];
-
-    root(
-        &uri,
-        Meta::default(),
-        html! {
-            main class="mx-auto my-20 max-w-2xl space-y-16 px-6 text-liver lg:px-14" {
-                section class="typography" {
-                    p {"
-I'm Antonio, a backend software engineer. I'm passionate about distributed
-systems and clean maintainable software. In my free time, I organize events
-with the local community I founded: " a href="https://pisa.dev" { "pisa.dev" } ". "}
-
-                    p {"
-I'm currently working on exciting technology at " a href="https://qredo.com" { "Qredo" } ". We aim to decentralize
-the private keys for your cryptocurrencies using our dMPC solution. "}
-
-                    p {"
-Before that, I worked at " a href="https://ignite.com" { "Ignite" } " (also known as " a href="https://tendermint.com" { "Tendermint" } "), the company that
-first created " a href="https://blog.cosmos.network/cosmos-history-inception-to-prelaunch-b05bcb6a4b2b" { "Proof-of-Stake" } " and " a href="https://cosmos.network/" { "Cosmos SDK" } ". My role was Senior Backend
-Engineer for the " em { "(now defunct)" } " " a href="https://emeris.com" { "Emeris" } ". "}
-
-                    p {"
-Before diving into cryptocurrencies tech, I've cutted my teeth in fast-paced
-startups where I helped shaping products such as " a href="https://traent.com" { "Traent" } " and " a href="Zerynth" { "Zerynth" } ". "}
-
-                    p {"
-Sometimes I have over-engineering tendencies, such as " a href="https://github.com/Pitasi/univrs" { "my personal website" } ".
-Most of the times I'm harmless though. "}
-                }
-
-                section {
-                    ul class="flex flex-row gap-4" {
-                        @for (_, icon, href) in socials.iter() {
-                            li {
-                                a class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset0 disabled:opacity-50 disabled:pointer-events-none data-[state=open]:bg-slate-100 h-10 py-2 px-4"
-                                    href=(href) {
-                                    (icon)
-                                }
-                            }
-                        }
-                    }
-                }
-
-                section {
-                    ol class="mt-6 space-y-6" {
-                        @for (name, title, src, from, to) in work_experiences.iter() {
-                            li class="flex gap-4" {
-                                img alt=(name) loading="lazy" decoding="async" width="48" height="48" class="h-7 w-7 rounded-full" src=(src);
-
-                                dl class="flex flex-auto flex-wrap gap-x-2" {
-                                    dt class="sr-only" { "Company" }
-                                    dd class="w-full flex-none text-sm font-medium text-black" { (name) }
-
-                                    dt class="sr-only" { "Role" }
-                                    dd class="text-xs text-eerie" { (title) }
-
-                                    dt class="sr-only" { "Date" }
-                                    dd class="ml-auto text-xs text-liver" aria-label=(format!("From {} to {}", from, to)) {
-                                        time datetime="2022" { (from) }
-                                        " "
-                                        span aria-hidden="true" { "—" }
-                                        " "
-                                        time datetime="Present" { (to) }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        auth.current_user,
-    )
-}
-
 fn secondary_sidebar(slot: Markup) -> Markup {
     html! {
         div class="
@@ -1011,7 +642,7 @@ async fn page_article(
                     article class="w-full bg-floralwhite p-8" {
                       div class="mx-auto max-w-2xl" {
                         h1 class="title-neu" { (a.title) }
-                        (PreEscaped(a.content))
+                        (a.content)
                       }
                     }
                 }

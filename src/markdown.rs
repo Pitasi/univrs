@@ -2,12 +2,13 @@ use std::fs::read_to_string;
 
 use comrak::plugins::syntect::SyntectAdapter;
 use comrak::{markdown_to_html_with_plugins, ComrakOptions, ComrakPlugins};
+use maud::Render;
 
 use crate::rsc::render;
 
 pub struct MarkdownFile {
     pub name: String,
-    pub content: String,
+    pub content: Markdown,
     pub frontmatter: frontmatter::Yaml,
 }
 
@@ -28,10 +29,19 @@ pub fn load_dir(path: &str) -> Vec<MarkdownFile> {
             Some(MarkdownFile {
                 name,
                 frontmatter,
-                content,
+                content: Markdown(content),
             })
         })
         .collect::<Vec<_>>()
+}
+
+#[derive(Clone, Debug)]
+pub struct Markdown(String);
+
+impl Render for Markdown {
+    fn render(&self) -> maud::Markup {
+        maud::PreEscaped(render(&self.0))
+    }
 }
 
 pub fn parse(input: &str) -> (frontmatter::Yaml, String) {
@@ -63,7 +73,7 @@ pub fn parse(input: &str) -> (frontmatter::Yaml, String) {
     plugins.render.codefence_syntax_highlighter = Some(&adapter);
 
     let html = markdown_to_html_with_plugins(input, &options, &plugins);
-    (frontmatter, render(&html))
+    (frontmatter, html)
 }
 
 fn parse_frontmatter(input: &str) -> (frontmatter::Yaml, &str) {

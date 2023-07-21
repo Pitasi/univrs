@@ -1,13 +1,13 @@
 use chrono::{DateTime, FixedOffset};
 
-use crate::markdown::load_dir;
+use crate::markdown::{load_dir, Markdown};
 
 #[derive(Clone, Debug)]
 pub struct Article {
     pub title: String,
     pub datetime: DateTime<FixedOffset>,
     pub slug: String,
-    pub content: String,
+    pub content: Markdown,
 }
 
 #[derive(Clone, Debug)]
