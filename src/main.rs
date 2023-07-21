@@ -1,4 +1,5 @@
 pub mod articles;
+pub mod hash;
 pub mod icons;
 pub mod markdown;
 pub mod rsc;
@@ -21,7 +22,8 @@ use axum_login::{
     secrecy::SecretVec,
     AuthLayer, AuthUser, PostgresStore,
 };
-use maud::{html, Markup, PreEscaped};
+use data_encoding::HEXLOWER;
+use maud::{html, Markup, PreEscaped, Render};
 use oauth2::{
     basic::BasicClient, reqwest::async_http_client, AuthType, AuthUrl, AuthorizationCode, ClientId,
     ClientSecret, CsrfToken, RedirectUrl, Scope, TokenResponse, TokenUrl,
@@ -32,6 +34,8 @@ use sqlx::{postgres::PgPoolOptions, PgPool};
 use std::{
     env,
     error::Error,
+    fs::File,
+    io::BufReader,
     net::{IpAddr, SocketAddr},
     str::FromStr,
 };
@@ -562,6 +566,40 @@ struct Meta<'a> {
     title: Option<&'a str>,
 }
 
+// maud helpers
+
+struct StaticFile<'a>(&'a str);
+
+impl<'a> Render for StaticFile<'a> {
+    fn render(&self) -> Markup {
+        let path = format!("static/{}", self.0);
+        println!("pwd: {:?}", std::env::current_dir());
+        let input = File::open(&path).expect(format!("failed to open file: {}", &path).as_str());
+        let reader = BufReader::new(input);
+        let digest = hash::sha256_digest(reader).expect("failed to hash css file");
+        let file_url = format!("{}?{}", path, &HEXLOWER.encode(digest.as_ref())[..5]);
+        PreEscaped(file_url)
+    }
+}
+
+struct CssFile<'a>(StaticFile<'a>);
+
+impl<'a> From<&'a str> for CssFile<'a> {
+    fn from(s: &'a str) -> Self {
+        Self(StaticFile(s))
+    }
+}
+
+impl<'a> Render for CssFile<'a> {
+    fn render(&self) -> Markup {
+        html! {
+            link rel="stylesheet" type="text/css" href=(self.0);
+        }
+    }
+}
+
+// end maud helpers
+
 #[tracing::instrument(level = "info")]
 fn root(uri: &http::Uri, meta: Meta, slot: Markup, user: Option<User>) -> Markup {
     let title = match meta.title {
@@ -575,8 +613,8 @@ fn root(uri: &http::Uri, meta: Meta, slot: Markup, user: Option<User>) -> Markup
                 meta charset="utf-8";
                 meta name="viewport" content="width=device-width, initial-scale=1";
                 title { (title) }
-                link rel="stylesheet" type="text/css" href="/static/style.css";
-                link rel="stylesheet" type="text/css" href="/static/tailwind.css";
+                (CssFile::from("style.css"))
+                (CssFile::from("tailwind.css"))
             }
             body class="flex min-h-screen" hx-ext="loading-states" {
               script src="/static/anime.min.js" {}

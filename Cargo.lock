@@ -735,6 +735,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "data-encoding"
+version = "2.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2e66c9d817f1720209181c316d28635c050fa304f9c79e47a520882661b7308"
+
+[[package]]
 name = "derive_more"
 version = "0.99.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3231,6 +3237,7 @@ dependencies = [
  "axum-login",
  "chrono",
  "comrak",
+ "data-encoding",
  "frontmatter",
  "lol_html",
  "maud",
@@ -3238,6 +3245,7 @@ dependencies = [
  "paste",
  "rand 0.8.5",
  "reqwest",
+ "ring",
  "serde",
  "serde_json",
  "sqlx",
