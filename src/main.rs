@@ -745,6 +745,7 @@ fn lazy_component(component_path: &str) -> Markup {
         button
             class="inline-flex items-center justify-center text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset0 disabled:opacity-50 disabled:pointer-events-none bg-transparent hover:bg-slate-100 data-[state=open]:bg-transparent h-9 px-2 rounded-md"
             hx-get=(component_path)
+            hx-payload="{}"
             hx-trigger="load"
             hx-target="this"
             hx-swap="outerHTML" {
@@ -839,7 +840,7 @@ async fn like_btn(pool: PgPool, user: Option<User>, url: &str, act: bool) -> Mar
     }
 }
 
-fn header() -> Markup {
+fn header(uri: &http::Uri) -> Markup {
     html! {
     header class="sticky top-0 z-10 flex w-full items-center justify-between gap-2
         overflow-hidden border-b-2 border-black bg-yellow px-3 py-3 lg:justify-end lg:gap-4" {
@@ -849,7 +850,7 @@ fn header() -> Markup {
             style="opacity: 0; transform: translateY(30px) translateZ(0px);" {
             "Astro: writing static websites like it’s 2023"
         }
-        (lazy_component("/components/like-btn"))
+        (lazy_component(&("/components/like-btn?url=".to_string() + uri.path())))
     }
     script {(PreEscaped(r#"
 var animation = anime({
@@ -875,12 +876,17 @@ pub struct Like {
     pub url: String,
 }
 
+#[derive(Deserialize)]
+struct PageLikeBtnQuery {
+    url: String,
+}
+
 async fn page_get_like_btn(
     auth: AuthContext,
     Extension(pool): Extension<PgPool>,
-    uri: http::Uri,
+    query: Query<PageLikeBtnQuery>,
 ) -> impl IntoResponse {
-    like_btn(pool, auth.current_user, uri.path(), false).await
+    like_btn(pool, auth.current_user, &query.url, false).await
 }
 
 async fn page_post_like_btn(
@@ -917,7 +923,7 @@ async fn page_article(
             articles_repo,
             Some(html! {
                 main class="typography relative min-h-full bg-floralwhite pb-24 lg:pb-0" {
-                    (header())
+                    (header(&uri))
                     article class="w-full bg-floralwhite p-8" {
                       div class="mx-auto max-w-2xl" {
                         h1 class="title-neu" { (a.title) }
