@@ -505,7 +505,7 @@ fn mobile_navbar(uri: &http::Uri, user: Option<User>) -> Markup {
                 div class="sticky bottom-0 top-0 max-h-screen overflow-auto p-4 lg:border-r-2 w-full space-y-20 border-t-2 border-black bg-lightviolet bg-pattern-hideout pb-10" {
                     div class="space-y-10" {
                         (sidebar_header(Some("/static/bulb.png"), "Antonio Pitasi"))
-                        (aaa(uri))
+                        (root_sidebar_nav(uri))
                     }
                     (login_widget(user))
                 }
@@ -520,7 +520,7 @@ fn mobile_navbar(uri: &http::Uri, user: Option<User>) -> Markup {
     }
 }
 
-fn aaa(uri: &http::Uri) -> Markup {
+fn root_sidebar_nav(uri: &http::Uri) -> Markup {
     let nav = vec![
         ("Home", "/", Some(icons::home())),
         ("Articles", "/articles", Some(icons::pen())),
@@ -547,7 +547,7 @@ fn root_sidebar(uri: &http::Uri, user: Option<User>) -> Markup {
         " {
             div class="space-y-8" {
                 (sidebar_header(Some("/static/bulb.png"), "Antonio Pitasi"))
-                (aaa(&uri))
+                (root_sidebar_nav(&uri))
             }
             (login_widget(user))
         }
