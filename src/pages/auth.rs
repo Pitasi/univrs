@@ -1,3 +1,5 @@
+use std::env;
+
 use axum::{
     extract::Query,
     response::{IntoResponse, Redirect},
@@ -113,7 +115,7 @@ pub async fn oauth_callback_handler(
     // Use auth token to fetch user info
     let user_client = reqwest::Client::new();
     let res = user_client
-        .get("https://poetic-camel-60.clerk.accounts.dev/oauth/userinfo")
+        .get(env::var("OAUTH_USERINFO_URL").expect("Missing OAUTH_USERINFO_URL!"))
         .headers(
             vec![(
                 "Authorization".parse().unwrap(),

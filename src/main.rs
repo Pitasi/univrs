@@ -94,13 +94,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let client_id = env::var("CLIENT_ID").expect("Missing CLIENT_ID!");
         let client_secret = env::var("CLIENT_SECRET").expect("Missing CLIENT_SECRET!");
         let redirect_url = env::var("CALLBACK_URL").expect("Missing CALLBACK_URL!");
+        let auth_url_str = env::var("OAUTH_AUTH_URL").expect("Missing OAUTH_AUTH_URL!");
+        let token_url_str = env::var("OAUTH_TOKEN_URL").expect("Missing OAUTH_TOKEN_URL!");
 
         let auth_url =
-            AuthUrl::new("https://poetic-camel-60.clerk.accounts.dev/oauth/authorize".to_string())
-                .expect("Invalid authorization endpoint URL");
+            AuthUrl::new(auth_url_str.to_string()).expect("Invalid authorization endpoint URL");
         let token_url =
-            TokenUrl::new("https://poetic-camel-60.clerk.accounts.dev/oauth/token".to_string())
-                .expect("Invalid token endpoint URL");
+            TokenUrl::new(token_url_str.to_string()).expect("Invalid token endpoint URL");
 
         BasicClient::new(
             ClientId::new(client_id),
