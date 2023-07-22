@@ -320,6 +320,7 @@ fn is_active(path: &str, href: &str) -> bool {
 #[derive(Default, Debug)]
 struct Meta<'a> {
     title: Option<&'a str>,
+    description: Option<&'a str>,
 }
 
 impl<'a> Render for Meta<'a> {
@@ -328,10 +329,16 @@ impl<'a> Render for Meta<'a> {
             Some(title) => format!("{} - Antonio Pitasi", title),
             None => "Antonio Pitasi".into(),
         };
+        let description = match self.description {
+            Some(description) => description,
+            None => "Antonio's personal website, a backend software engineer passionate about distributed systems and clean, maintainable software. Currently working at Qredo, aiming to decentralize the private keys for cryptocurrencies. Founder of the local community, pisa.dev.",
+        };
+
         html! {
+            title { (title) }
             meta charset="utf-8";
             meta name="viewport" content="width=device-width, initial-scale=1";
-            title { (title) }
+            meta name="description" content=(description);
         }
     }
 }
@@ -443,6 +450,8 @@ async fn page_articles(
         &uri,
         Meta {
             title: Some("Articles"),
+            description: Some("Antonio's articles on various topics related to software engineering and technology."),
+            ..Default::default()
         },
         articles(&uri, articles_repo, None),
         auth.current_user,
@@ -632,6 +641,7 @@ async fn page_article(
         &uri,
         Meta {
             title: Some(&a.title),
+            ..Default::default()
         },
         articles(
             &uri,
