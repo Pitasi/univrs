@@ -79,6 +79,7 @@
     text-decoration-line: underline;
     color: var(--pink);
     font-weight: 600;
+    word-break: break-all;
   }
 
   & hr {
