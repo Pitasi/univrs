@@ -18,7 +18,7 @@ pub async fn handler(uri: http::Uri, auth: AuthContext) -> impl IntoResponse {
         (
             "Qredo",
             "Blockchain Engineer",
-            "/static/companies/qredo.png",
+            "/static/companies/qredo.webp",
             "2022",
             "Present",
         ),
