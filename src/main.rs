@@ -341,7 +341,6 @@ struct StaticFile<'a>(&'a str);
 impl<'a> Render for StaticFile<'a> {
     fn render(&self) -> Markup {
         let path = format!("static/{}", self.0);
-        println!("pwd: {:?}", std::env::current_dir());
         let input = File::open(&path).expect(format!("failed to open file: {}", &path).as_str());
         let reader = BufReader::new(input);
         let digest = hash::sha256_digest(reader).expect("failed to hash css file");
@@ -377,6 +376,7 @@ fn root(uri: &http::Uri, meta: Meta, slot: Markup, user: Option<User>) -> Markup
                 (meta)
                 (CssFile::from("style.css"))
                 (CssFile::from("tailwind.css"))
+                script defer data-domain="anto.pt" src="https://plausible.anto.pt/js/plausible.js" {}
             }
             body class="flex min-h-screen" hx-ext="loading-states" {
               script src="/static/anime.min.js" {}
