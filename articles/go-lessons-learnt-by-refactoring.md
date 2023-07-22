@@ -3,7 +3,14 @@ title: "Go lessons learnt by refactoring"
 datetime: 2020-02-21T21:35:35.000Z
 ---
 
-*If you didn't, take a look at: https://github.com/golang/go/wiki/CodeReviewComments*
+<p>
+<em>
+If you didn't, take a look at:
+<a href="https://github.com/golang/go/wiki/CodeReviewComments" class="break-all">
+	https://github.com/golang/go/wiki/CodeReviewComments
+</a>
+</em>
+</p>
 
 A little context: I recently moved to a new company and they are starting using
 the **Go language** for some of the projects currently developing.

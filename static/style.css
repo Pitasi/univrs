@@ -81,7 +81,6 @@
     text-decoration-line: underline;
     color: var(--pink);
     font-weight: 600;
-    word-break: break-all;
   }
 
   & hr {
@@ -98,6 +97,10 @@
       margin-top: 0.5rem;
     }
   }
+}
+
+.break-all {
+  word-break: break-all;
 }
 
 code {
