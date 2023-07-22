@@ -224,7 +224,7 @@ fn login_widget(user: Option<User>) -> Markup {
                     div class="flex flex-row justify-between" {
                         div class="w-10" {
                             span class="relative flex shrink-0 overflow-hidden rounded-md row-span-2 aspect-square h-auto w-full border-2 border-black" {
-                                        img class="aspect-square h-full w-full" src=(user.picture.unwrap_or("/static/bulb.png".to_string()));
+                                        img class="aspect-square h-full w-full" src=(user.picture.unwrap_or("/static/bulb.webp".to_string()));
                             }
                         }
                         a class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset0 disabled:opacity-50 disabled:pointer-events-none data-[state=open]:bg-slate-100 bg-floralwhite text-black hover:bg-slate-200 h-10 w-10 border-2 border-black"
@@ -258,7 +258,7 @@ fn mobile_navbar(uri: &http::Uri, user: Option<User>) -> Markup {
             div data-state="open" class="fixed z-50 grid w-full gap-4 rounded-b-lg border-black bg-white shadow-neu-3 animate-in data-[state=open]:fade-in-90 data-[state=open]:slide-in-from-bottom-10 sm:rounded-lg sm:zoom-in-90 data-[state=open]:sm:slide-in-from-bottom-0 bottom-0 top-auto border-0 p-0 sm:max-w-full lg:hidden" {
                 div class="sticky bottom-0 top-0 max-h-screen overflow-auto p-4 lg:border-r-2 w-full space-y-20 border-t-2 border-black bg-lightviolet bg-pattern-hideout pb-10" {
                     div class="space-y-10" {
-                        (sidebar_header(Some("/static/bulb.png"), "Antonio Pitasi"))
+                        (sidebar_header(Some("/static/bulb.webp"), "Antonio Pitasi"))
                         (root_sidebar_nav(uri))
                     }
                     (login_widget(user))
@@ -300,7 +300,7 @@ fn root_sidebar(uri: &http::Uri, user: Option<User>) -> Markup {
             lg:border-r-2
         " {
             div class="space-y-8" {
-                (sidebar_header(Some("/static/bulb.png"), "Antonio Pitasi"))
+                (sidebar_header(Some("/static/bulb.webp"), "Antonio Pitasi"))
                 (root_sidebar_nav(&uri))
             }
             (login_widget(user))
