@@ -1,7 +1,10 @@
 use axum::{http, response::IntoResponse};
 use maud::html;
 
-use crate::{icons, images, root, AuthContext, Meta};
+use crate::{
+    components::{root, Meta},
+    icons, images, AuthContext,
+};
 
 pub async fn handler(uri: http::Uri, auth: AuthContext) -> impl IntoResponse {
     let socials = [
