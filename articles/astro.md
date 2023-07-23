@@ -35,7 +35,7 @@ Why do I call it **pain**?
 to DRY and duplications give us creeps.
 
 <div class="max-w-lg">
-  <image webp="https://assets.anto.pt/articles/astro/astro-1.webp" png="https://assets.anto.pt/articles/astro/astro-1.png"></image>
+  <image avif="https://assets.anto.pt/articles/astro/astro-1.avif" webp="https://assets.anto.pt/articles/astro/astro-1.webp" png="https://assets.anto.pt/articles/astro/astro-1.png"></image>
 </div>
 
 Thinking of duplicating the navbar in all my HTML pages and trying to
@@ -180,7 +180,7 @@ If you’re wondering why they’re called “_islands_”, it’s a name conied
 Let’s consider this page of my blog, its layout is:
 
 <div class="max-w-lg">
-  <image webp="https://assets.anto.pt/articles/astro/astro-2.webp" png="https://assets.anto.pt/articles/astro/astro-2.png" alt="Diagram of the layout of this blog"></image>
+  <image avif="https://assets.anto.pt/articles/astro/astro-2.avif" webp="https://assets.anto.pt/articles/astro/astro-2.webp" png="https://assets.anto.pt/articles/astro/astro-2.png" alt="Diagram of the layout of this blog"></image>
 </div>
 
 Unsurprisingly I have a `Content.astro` and a `Footer.astro` file. I also want to keep the nice effect on the navbar (scrolling up a little makes the navbar reappears) and more importantly the “toggle” button on mobile.
@@ -279,7 +279,7 @@ import Footer from "../components/Footer.astro";
 Now, if you open the network tab of your browser in any page of my blog you’ll see React and my component’s code being downloaded:
 
 
-<image webp="https://assets.anto.pt/articles/astro/network.webp" png="https://assets.anto.pt/articles/astro/network.png" alt="Network tab showing three .js files being downloaded"></image>
+<image avif="https://assets.anto.pt/articles/astro/network.avif" webp="https://assets.anto.pt/articles/astro/network.webp" png="https://assets.anto.pt/articles/astro/network.png" alt="Network tab showing three .js files being downloaded"></image>
 
 Note: if I'll ever want to rewrite my component in something different than
 React I can, and maybe even save some precious KBs. For now, I just
