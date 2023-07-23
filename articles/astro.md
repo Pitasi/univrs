@@ -279,7 +279,7 @@ import Footer from "../components/Footer.astro";
 Now, if you open the network tab of your browser in any page of my blog you’ll see React and my component’s code being downloaded:
 
 
-<img src="https://assets.anto.pt/articles/astro/network.png" alt="Network tab showing three .js files being downloaded" />
+<image webp="https://assets.anto.pt/articles/astro/network.webp" png="https://assets.anto.pt/articles/astro/network.png" alt="Network tab showing three .js files being downloaded"></image>
 
 Note: if I'll ever want to rewrite my component in something different than
 React I can, and maybe even save some precious KBs. For now, I just
