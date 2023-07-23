@@ -1,14 +1,14 @@
 pub mod articles;
 pub mod hash;
 pub mod icons;
+pub mod images;
 pub mod markdown;
 pub mod pages;
 pub mod rsc;
 
 use axum::{
-    async_trait,
-    extract::{FromRequestParts, Path, Query},
-    http::{self, request::Parts, HeaderMap, Request, StatusCode},
+    extract::{Path, Query},
+    http::{self, HeaderMap, Request},
     middleware::{self, Next},
     response::{IntoResponse, Response},
     routing::{get, post},
@@ -16,7 +16,7 @@ use axum::{
 };
 use axum_login::{
     axum_sessions::{async_session::MemoryStore as SessionMemoryStore, SameSite, SessionLayer},
-    AuthLayer, AuthUser, PostgresStore,
+    AuthLayer, PostgresStore,
 };
 use data_encoding::HEXLOWER;
 use maud::{html, Markup, PreEscaped, Render};
@@ -169,12 +169,7 @@ fn sidebar_header(img_src: Option<&str>, title: &str) -> Markup {
         header class="flex h-10 w-full flex-row items-center gap-1" {
             @if let Some(src) = img_src {
                 div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" {
-                    img
-                        class="w-full h-full object-contain"
-                        src=(src)
-                        alt=(title)
-                        loading="lazy"
-                        decoding="async";
+                    (images::static_img(src, title, "w-full h-full object-contain"))
                 }
             } @else {
                 div class="h-10 w-4" { }
@@ -258,7 +253,7 @@ fn mobile_navbar(uri: &http::Uri, user: Option<User>) -> Markup {
             div data-state="open" class="fixed z-50 grid w-full gap-4 rounded-b-lg border-black bg-white shadow-neu-3 animate-in data-[state=open]:fade-in-90 data-[state=open]:slide-in-from-bottom-10 sm:rounded-lg sm:zoom-in-90 data-[state=open]:sm:slide-in-from-bottom-0 bottom-0 top-auto border-0 p-0 sm:max-w-full lg:hidden" {
                 div class="sticky bottom-0 top-0 max-h-screen overflow-auto p-4 lg:border-r-2 w-full space-y-20 border-t-2 border-black bg-lightviolet bg-pattern-hideout pb-10" {
                     div class="space-y-10" {
-                        (sidebar_header(Some("/static/bulb.webp"), "Antonio Pitasi"))
+                        (sidebar_header(Some("static/bulb.webp"), "Antonio Pitasi"))
                         (root_sidebar_nav(uri))
                     }
                     (login_widget(user))
@@ -300,7 +295,7 @@ fn root_sidebar(uri: &http::Uri, user: Option<User>) -> Markup {
             lg:border-r-2
         " {
             div class="space-y-8" {
-                (sidebar_header(Some("/static/bulb.webp"), "Antonio Pitasi"))
+                (sidebar_header(Some("static/bulb.webp"), "Antonio Pitasi"))
                 (root_sidebar_nav(&uri))
             }
             (login_widget(user))

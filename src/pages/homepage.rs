@@ -1,7 +1,7 @@
 use axum::{http, response::IntoResponse};
 use maud::html;
 
-use crate::{icons, root, AuthContext, Meta};
+use crate::{icons, images, root, AuthContext, Meta};
 
 pub async fn handler(uri: http::Uri, auth: AuthContext) -> impl IntoResponse {
     let socials = [
@@ -18,35 +18,35 @@ pub async fn handler(uri: http::Uri, auth: AuthContext) -> impl IntoResponse {
         (
             "Qredo",
             "Blockchain Engineer",
-            "/static/companies/qredo.webp",
+            "static/companies/qredo.webp",
             "2022",
             "Present",
         ),
         (
             "Ignite (fka Tendermint)",
             "Sr. Backend Engineer",
-            "/static/companies/tendermint.svg",
+            "static/companies/tendermint.svg",
             "2022",
             "2022",
         ),
         (
             "Geckosoft",
             "Backend Engineer",
-            "/static/companies/geckosoft.svg",
+            "static/companies/geckosoft.svg",
             "2020",
             "2022",
         ),
         (
             "Nextworks",
             "Backend Engineer",
-            "/static/companies/nextworks.svg",
+            "static/companies/nextworks.svg",
             "2019",
             "2020",
         ),
         (
             "Zerynth",
             "Fullstack developer",
-            "/static/companies/zerynth.svg",
+            "static/companies/zerynth.svg",
             "2018",
             "2019",
         ),
@@ -98,7 +98,7 @@ Most of the times I'm harmless though. "}
                     ol class="mt-6 space-y-6" {
                         @for (name, title, src, from, to) in work_experiences.iter() {
                             li class="flex gap-4" {
-                                img alt=(name) loading="lazy" decoding="async" width="48" height="48" class="h-7 w-7 rounded-full" src=(src);
+                                (images::static_img(src, name, "h-7 w-7 rounded-full"))
 
                                 dl class="flex flex-auto flex-wrap gap-x-2" {
                                     dt class="sr-only" { "Company" }
