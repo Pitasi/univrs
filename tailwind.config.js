@@ -2,6 +2,7 @@
 const config = {
   content: [
     './src/**/*.{html,rs}',
+    './articles/**/*.md',
   ],
   theme: {
     extend: {

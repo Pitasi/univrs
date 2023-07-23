@@ -34,8 +34,8 @@ Why do I call it **pain**?
 **Reason 1:** copy-pasting everything: we are good software developers, we stick
 to DRY and duplications give us creeps.
 
-<div style="max-width:500px">
-  <img src="https://assets.anto.pt/articles/astro/astro-1.png" />
+<div class="max-w-lg">
+  <image webp="https://assets.anto.pt/articles/astro/astro-1.webp" png="https://assets.anto.pt/articles/astro/astro-1.png"></image>
 </div>
 
 Thinking of duplicating the navbar in all my HTML pages and trying to
@@ -179,7 +179,9 @@ If you’re wondering why they’re called “_islands_”, it’s a name conied
 
 Let’s consider this page of my blog, its layout is:
 
-<img style="max-width: min(100%,500px)" height={1656} width={1481} src="https://assets.anto.pt/articles/astro/astro-2.png" alt="Diagram of the layout of this blog" />
+<div class="max-w-lg">
+  <image webp="https://assets.anto.pt/articles/astro/astro-2.webp" png="https://assets.anto.pt/articles/astro/astro-2.png" alt="Diagram of the layout of this blog"></image>
+</div>
 
 Unsurprisingly I have a `Content.astro` and a `Footer.astro` file. I also want to keep the nice effect on the navbar (scrolling up a little makes the navbar reappears) and more importantly the “toggle” button on mobile.
 
@@ -315,7 +317,6 @@ flavors: light and dark.
 <img
   src="https://assets.anto.pt/articles/astro/light-dark.gif"
   alt="Gif showing that switching from dark to light theme on the site loads a different set of images"
-  style="width: 400px; height: 406px"
 />
 
 This was made possible by a simple wrapper component I made and used like this:
