@@ -384,6 +384,8 @@ fn root(uri: &http::Uri, meta: Meta, slot: Markup, user: Option<User>) -> Markup
                 (CssFile::from("style.css"))
                 (CssFile::from("tailwind.css"))
                 script defer data-domain="anto.pt" src="https://plausible.anto.pt/js/plausible.js" {}
+                link rel="preload" href="/static/Inter-VariableFont_slnt,wght.ttf" crossorigin="anonymous" as="font" type="font/ttf";
+                link rel="preload" href="/static/DarkerGrotesque-VariableFont_wght.ttf" crossorigin="anonymous" as="font" type="font/ttf";
             }
             body class="flex min-h-screen" hx-ext="loading-states" {
               script src="/static/anime.min.js" {}
