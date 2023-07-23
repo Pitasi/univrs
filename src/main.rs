@@ -367,6 +367,18 @@ impl<'a> Render for CssFile<'a> {
     }
 }
 
+fn favicon() -> Markup {
+    html! {
+      link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png";
+      link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png";
+      link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png";
+      link rel="manifest" href="/static/site.webmanifest";
+      link rel="mask-icon" href="/static/safari-pinned-tab.svg" color="#9e9815";
+      meta name="msapplication-TileColor" content="#da532c";
+      meta name="theme-color" content="#ffffff";
+    }
+}
+
 // end maud helpers
 
 #[tracing::instrument(level = "info")]
@@ -376,6 +388,7 @@ fn root(uri: &http::Uri, meta: Meta, slot: Markup, user: Option<User>) -> Markup
         html lang="en" ."bg-floralwhite" {
             head {
                 (meta)
+                (favicon())
                 (CssFile::from("style.css"))
                 (CssFile::from("tailwind.css"))
                 script defer data-domain="anto.pt" src="https://plausible.anto.pt/js/plausible.js" {}
