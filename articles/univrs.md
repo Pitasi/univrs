@@ -39,9 +39,9 @@ I will be calling functions like `layout()` *components*. Because that's all the
 // A JSX component
 function Nuts({ count }) {
     if (count < 0) {
-	    <p>You cannot have negative nuts</p>
-	}
-	return <h1>{count} nuts</h1>
+	return <p>You cannot have negative nuts</p>;
+    }
+    return <h1>{count} nuts</h1>;
 }
 ```
 
@@ -49,10 +49,10 @@ equivalent to:
 ```rust
 // A Rust Server Component
 fn nuts(count: i64) -> String {
-	if (count < 0) {
-		"<p>You cannot have negative nuts</p>".into()
-	} else {
-	    format!("<h1>{count}</h1>")
+    if (count < 0) {
+	"<p>You cannot have negative nuts</p>".into()
+    } else {
+	format!("<h1>{count}</h1>")
     }
 }
 ```
@@ -129,7 +129,7 @@ pub async fn page() -> Markup {
 }
 ```
 Beautiful:
-![[Pasted image 20230724201810.png]]
+<image png=sample_page.png webp=sample_page.webp avif=sample_page.avif></image>
 
 ## MD...X?
 MDX allows you to use JSX in your markdown content. And I wanted something similar.
@@ -245,7 +245,7 @@ pub async fn page() -> Markup {
     }
 }
 ```
-![[Pasted image 20230724201653.png]]
+<image png=enhanced_sample_page.png webp=enhanced_sample_page.webp avif=enhanced_sample_page.avif></image>
 
 ## Going interactive
 ```rust
@@ -273,7 +273,7 @@ pub async fn page() -> Markup {
 
 ```
 
-![[Pasted image 20230724201902.png]]
+<image png=sample_page_counter.png webp=sample_page_counter.webp avif=sample_page_counter.avif></image>
 
 Clicking the button doesn't do anything, yet.
 
@@ -352,7 +352,7 @@ pub async fn page() -> Markup {
 ```
 
 And it works:
-![[Pasted image 20230724203410.png]]
+<image png=sample_page_counter_working.png webp=sample_page_counter_working.webp avif=sample_page_counter_working.avif></image>
 
 This is not an htmx tutorial, I just wanted to showcase how convenient can be to share the same function `counter()` both as a "regular page" that as an endpoint for HTMX.
 
