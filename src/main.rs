@@ -6,6 +6,7 @@ pub mod images;
 pub mod markdown;
 pub mod pages;
 pub mod rsc;
+pub mod xmarkdown;
 
 use axum::{
     extract::Query,
@@ -128,9 +129,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route("/like-btn", get(page_get_like_btn))
         .route("/like-btn", post(page_post_like_btn));
 
-    let router = Router::new()
-        .nest("/", app)
-        .nest("/components", components)
+    let router = Router::new().nest("/", app).nest("/components", components);
+
+    let router = router
         .layer(Extension(pool))
         .layer(Extension(oauth_client))
         .layer(Extension(articles_repo))

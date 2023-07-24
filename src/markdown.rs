@@ -2,9 +2,8 @@ use std::fs::read_to_string;
 
 use comrak::plugins::syntect::SyntectAdapter;
 use comrak::{markdown_to_html_with_plugins, ComrakOptions, ComrakPlugins};
-use maud::Render;
 
-use crate::rsc::render;
+use crate::xmarkdown::Markdown;
 
 pub struct MarkdownFile {
     pub name: String,
@@ -33,15 +32,6 @@ pub fn load_dir(path: &str) -> Vec<MarkdownFile> {
             })
         })
         .collect::<Vec<_>>()
-}
-
-#[derive(Clone, Debug)]
-pub struct Markdown(String);
-
-impl Render for Markdown {
-    fn render(&self) -> maud::Markup {
-        maud::PreEscaped(render(&self.0))
-    }
 }
 
 pub fn parse(input: &str) -> (frontmatter::Yaml, String) {

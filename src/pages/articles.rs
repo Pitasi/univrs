@@ -67,7 +67,7 @@ fn articles(
     html! {
         div class="relative h-full w-full flex-row lg:grid lg:grid-cols-[20rem_minmax(0,1fr)]" {
             (secondary_sidebar( html! {
-                @for article in articles_repo.articles {
+                @for article in articles_repo.list() {
                     @let href = format!("/articles/{}", article.slug);
                     (sidebar_nav_item(&href, &None, html! {
                         div class="flex flex-col" {
