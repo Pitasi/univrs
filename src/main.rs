@@ -269,7 +269,7 @@ async fn like_btn(pool: PgPool, user: Option<User>, url: &str, act: bool) -> Mar
     }
 }
 
-fn header(uri: &http::Uri) -> Markup {
+fn header(uri: &http::Uri, title: &str) -> Markup {
     html! {
     header class="sticky top-0 z-10 flex w-full items-center justify-between gap-2
         overflow-hidden border-b-2 border-black bg-yellow px-3 py-3 lg:justify-end lg:gap-4" {
@@ -277,7 +277,7 @@ fn header(uri: &http::Uri) -> Markup {
             id="header-title"
             class="line-clamp-1 text-ellipsis font-bold"
             style="opacity: 0; transform: translateY(30px) translateZ(0px);" {
-            "Astro: writing static websites like it’s 2023"
+            (title)
         }
         (lazy_component(&("/components/like-btn?url=".to_string() + uri.path())))
     }

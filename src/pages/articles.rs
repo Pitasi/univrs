@@ -45,7 +45,7 @@ pub async fn page_article(
             articles_repo,
             Some(html! {
                 main class="typography relative min-h-full bg-floralwhite pb-24 lg:pb-0" {
-                    (header(&uri))
+                    (header(&uri, &a.title))
                     article class="w-full bg-floralwhite p-8" {
                       div class="mx-auto max-w-2xl" {
                         h1 class="title-neu" { (a.title) }
