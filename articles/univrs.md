@@ -8,8 +8,8 @@ Instead of drowning in the labyrinth of mainstream frameworks like Next.js, I de
 
 It's still convoluted, but I can lay out the implementation right here in this blog post. Can you say the same for Next.js?
 
-/callout Are you saying that you built your own version of Next.js?
-/callout Not at all! That would require an enormous amount of work and I only worked on this in my spare time. I wanted to learn more Rust and played with it building something that I could actually use in real life: a webserver. 
+<dialog character=raisehand pos=left msg="Are you saying that you built your own version of Next.js?"></dialog>
+<dialog character=bulb pos=right msg="Not at all! That would require an enormous amount of work and I only worked on this in my spare time. I wanted to learn more Rust and played with it building something that I could actually use in real life: a webserver."></dialog>
 
 I think of this as the Rust equivalent of [T3 Stack](https://create.t3.gg/). I did not implement a framework, I took existing libraries and put some glue in between them.
 
@@ -57,9 +57,9 @@ fn nuts(count: i64) -> String {
 }
 ```
 
-/callout Are you saying that the "Rust Server Components" that baited viewers here are just functions that return string?
-/callout Yep, that's correct.
-/callout You gotta put some real content now or nobody will trust you ever again.
+<dialog character=raisehand pos=left msg="Are you saying that &quot;Rust Server Components&quot; that baited viewers here are just functions that return strings?"></dialog>
+<dialog character=bulb pos=right msg="Yep, that's correct."></dialog>
+<dialog character=facepalm pos=left msg="You gotta put some real content now or nobody will trust you ever again."></dialog>
 
 ## Server components
 Next.js and React have been pushing for RSC (the real ones, React Server Components).
@@ -73,8 +73,8 @@ Even if we're adding a new dependency, keep in mind the philosophy of this proje
 
 - TODO: write a component with Maud (pattern matching and loops)
 
-/callout You say that maud is just `format!()`. Why the function now returns `Markup` instead of `String`?
-/callout `Markup` is pretty much a `String`, but for convenience I left it. If you put a normal `String` into a Maud component, its content will be escaped. Returning Markup directly is easier for nesting Maud components.
+<dialog character=raisehand pos=left msg="You say that maud is just <code>format!()</code>. Why the function now returns <code>Markup</code> instead of <code>String</code>?"></dialog>
+<dialog character=bulb pos=right msg="<code>Markup</code> is pretty much a <code>String</code>, but for convenience I left it. If you put a normal <code>String</code> into a Maud component, its content will be escaped. Returning Markup directly is easier for nesting Maud components."></dialog>
 
 The power of Maud is the ability to have control flows directly inside your template, it's so convenient. More abilities are documented in the [official website](https://maud.lambda.xyz/control-structures.html).
 
@@ -134,8 +134,9 @@ Beautiful:
 ## MD...X?
 MDX allows you to use JSX in your markdown content. And I wanted something similar.
 
-/callout Are we the reason you wanted custom components?
-/callout Bingo. Here is our source code: -todo add source code
+<dialog character=raisehand pos=left msg="Are we the reason you wanted custom components?"></dialog>
+<dialog character=bulb pos=right msg="Bingo. Here is our source code: <pre><code>&lt;dialog character=raisehand pos=left msg=&quot;Are we the reason you wanted custom components?&quot;&gt;&lt;/dialog&gt;
+&lt;dialog character=bulb pos=right msg=&quot;Bingo. Here is our source code: &lt;pre&gt;&lt;code&gt;stack overflow&lt;/code&gt;&lt;/pre&gt;&quot;&gt;&lt;/dialog&gt;</code></pre>"></dialog>
 
 To achieve that, I'm adding one more crate: [lol-html](https://crates.io/crates/lol-html). Built by CloudFlare to power their Workers.
 
