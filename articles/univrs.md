@@ -129,7 +129,7 @@ pub async fn page() -> Markup {
 }
 ```
 Beautiful:
-<image png=sample_page.png webp=sample_page.webp avif=sample_page.avif></image>
+<image png="https://assets.anto.pt/articles/rsc/sample_page.png" webp="https://assets.anto.pt/articles/rsc/sample_page.webp" avif="https://assets.anto.pt/articles/rsc/sample_page.avif"></image>
 
 ## MD...X?
 MDX allows you to use JSX in your markdown content. And I wanted something similar.
@@ -245,7 +245,7 @@ pub async fn page() -> Markup {
     }
 }
 ```
-<image png=enhanced_sample_page.png webp=enhanced_sample_page.webp avif=enhanced_sample_page.avif></image>
+<image png="https://assets.anto.pt/articles/rsc/enhanced_sample_page.png" webp="https://assets.anto.pt/articles/rsc/enhanced_sample_page.webp" avif="https://assets.anto.pt/articles/rsc/enhanced_sample_page.avif"></image>
 
 ## Going interactive
 ```rust
@@ -273,7 +273,7 @@ pub async fn page() -> Markup {
 
 ```
 
-<image png=sample_page_counter.png webp=sample_page_counter.webp avif=sample_page_counter.avif></image>
+<image png="https://assets.anto.pt/articles/rsc/sample_page_counter.png" webp="https://assets.anto.pt/articles/rsc/sample_page_counter.webp" avif="https://assets.anto.pt/articles/rsc/sample_page_counter.avif"></image>
 
 Clicking the button doesn't do anything, yet.
 
@@ -352,7 +352,7 @@ pub async fn page() -> Markup {
 ```
 
 And it works:
-<image png=sample_page_counter_working.png webp=sample_page_counter_working.webp avif=sample_page_counter_working.avif></image>
+<image png="https://assets.anto.pt/articles/rsc/sample_page_counter_working.png" webp="https://assets.anto.pt/articles/rsc/sample_page_counter_working.webp" avif="https://assets.anto.pt/articles/rsc/sample_page_counter_working.avif"></image>
 
 This is not an htmx tutorial, I just wanted to showcase how convenient can be to share the same function `counter()` both as a "regular page" that as an endpoint for HTMX.
 
