@@ -1,13 +1,10 @@
 use std::fs::read_to_string;
 
-use comrak::plugins::syntect::SyntectAdapter;
-use comrak::{markdown_to_html_with_plugins, ComrakOptions, ComrakPlugins};
-
-use crate::xmarkdown::Markdown;
+use crate::xmarkdown::{EnhancedMd, Markdown};
 
 pub struct MarkdownFile {
     pub name: String,
-    pub content: Markdown,
+    pub content: EnhancedMd,
     pub frontmatter: frontmatter::Yaml,
 }
 
@@ -24,46 +21,14 @@ pub fn load_dir(path: &str) -> Vec<MarkdownFile> {
 
             let name = path.file_stem().unwrap().to_str().unwrap().to_string();
             let input = read_to_string(path).unwrap();
-            let (frontmatter, content) = parse(&input);
+            let (frontmatter, content) = parse_frontmatter(&input);
             Some(MarkdownFile {
                 name,
                 frontmatter,
-                content: Markdown(content),
+                content: EnhancedMd(Markdown(content.into())),
             })
         })
         .collect::<Vec<_>>()
-}
-
-pub fn parse(input: &str) -> (frontmatter::Yaml, String) {
-    let (frontmatter, input) = parse_frontmatter(input);
-
-    let adapter = SyntectAdapter::new("InspiredGitHub");
-
-    let options = ComrakOptions {
-        parse: comrak::ComrakParseOptions {
-            ..comrak::ComrakParseOptions::default()
-        },
-
-        extension: comrak::ComrakExtensionOptions {
-            autolink: true,
-            table: true,
-            description_lists: true,
-            superscript: true,
-            strikethrough: true,
-            footnotes: true,
-            ..comrak::ComrakExtensionOptions::default()
-        },
-
-        render: comrak::ComrakRenderOptions {
-            unsafe_: true,
-            ..comrak::ComrakRenderOptions::default()
-        },
-    };
-    let mut plugins = ComrakPlugins::default();
-    plugins.render.codefence_syntax_highlighter = Some(&adapter);
-
-    let html = markdown_to_html_with_plugins(input, &options, &plugins);
-    (frontmatter, html)
 }
 
 fn parse_frontmatter(input: &str) -> (frontmatter::Yaml, &str) {

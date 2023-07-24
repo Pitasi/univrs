@@ -1,12 +1,10 @@
-use comrak::{markdown_to_html, ComrakOptions};
-use lol_html::{
-    element,
-    html_content::{ContentType, Element},
-    Settings,
+use comrak::{
+    markdown_to_html_with_plugins, plugins::syntect::SyntectAdapter, ComrakOptions, ComrakPlugins,
 };
+use lol_html::html_content::{ContentType, Element};
 use maud::{html, Markup, Render};
 
-use crate::rsc::apply;
+use crate::rsc;
 
 #[derive(Debug, Clone)]
 pub struct Markdown(pub String);
@@ -14,13 +12,31 @@ pub struct Markdown(pub String);
 impl Render for Markdown {
     fn render(&self) -> maud::Markup {
         let options = ComrakOptions {
+            parse: comrak::ComrakParseOptions {
+                ..comrak::ComrakParseOptions::default()
+            },
+
+            extension: comrak::ComrakExtensionOptions {
+                autolink: true,
+                table: true,
+                description_lists: true,
+                superscript: true,
+                strikethrough: true,
+                footnotes: true,
+                ..comrak::ComrakExtensionOptions::default()
+            },
+
             render: comrak::ComrakRenderOptions {
                 unsafe_: true,
                 ..comrak::ComrakRenderOptions::default()
             },
-            ..comrak::ComrakOptions::default()
         };
-        let html = markdown_to_html(&self.0, &options);
+        let mut plugins = ComrakPlugins::default();
+
+        let adapter = SyntectAdapter::new("InspiredGitHub");
+        plugins.render.codefence_syntax_highlighter = Some(&adapter);
+
+        let html = markdown_to_html_with_plugins(&self.0, &options, &plugins);
         maud::PreEscaped(html)
     }
 }
@@ -35,6 +51,7 @@ impl ComponentReplacer for Element<'_, '_> {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct EnhancedMd(pub Markdown);
 
 impl From<String> for EnhancedMd {
@@ -45,20 +62,6 @@ impl From<String> for EnhancedMd {
 
 impl Render for EnhancedMd {
     fn render(&self) -> Markup {
-        apply(
-            Settings {
-                element_content_handlers: vec![element!("alert", |el| {
-                    let msg = el.get_attribute("msg").expect("msg attribute is required");
-                    el.replace_comp(html! {
-                        div style="background: red; padding: 10px;" { (msg) }
-                    });
-                    Ok(())
-                })],
-                ..Settings::default()
-            },
-            html! {
-                (&self.0)
-            },
-        )
+        rsc::render(html! { (self.0) })
     }
 }
