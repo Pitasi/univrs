@@ -35,17 +35,6 @@
     scroll-margin: 5rem;
   }
 
-  .title-neu {
-	  font-family: var(--font-darker-grotesque);
-	  font-weight: 900;
-	  text-shadow: #fe7dd0 .5px .5px, #fe7dd0 1px 1px, #fe7dd0 1.5px 1.5px, #fe7dd0 2px 2px;
-
-    @media (min-width: 1024px) {
-      font-size: 5rem;
-      line-height: 1;
-    }
-  }
-   
   & h2 {
     letter-spacing: -.025em;
     font-weight: 600;

@@ -48,7 +48,13 @@ pub async fn page_article(
                     (header(&uri, &a.title))
                     article class="w-full bg-floralwhite p-8" {
                       div class="mx-auto max-w-2xl" {
-                        h1 class="title-neu" { (a.title) }
+                        div class="flex flex-col gap-1" {
+                            h1 class="font-neu text-bold text-darkviolet" { (a.title) }
+                            div class="flex flex-row" {
+                                span class="text-gray-500" { "Written on " (a.datetime.format("%B %d, %Y")) "." }
+                            }
+                        }
+
                         (a.content)
                       }
                     }
