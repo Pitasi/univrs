@@ -65,7 +65,7 @@ fn nuts(count: i64) -> String {
 Next.js and React have been pushing for RSC (the real ones, React Server Components).
 It's exactly what I did in the previous section, the JSX component is eventually rendered into a HTML string by the server.
 
-/infopanel Dan Abramov made this amazing presentation where he used Internet Explorer to navigate a page built with RSC.
+<dialog character=finger pos=right msg="Dan Abramov made <a href='https://youtu.be/zMf_xeGPn6s'>this amazing presentation</a> where he used Internet Explorer to navigate a page built with RSC."></dialog>
 
 JSX provide a far better DX than `format!()`, but I've found [maud](https://maud.lambda.xyz/), a crate that is pure gold. (Thanks Xe Iaso's site source code for making me discover maud). It's not as good as writing JSX but it's not bad either.
 

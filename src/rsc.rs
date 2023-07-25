@@ -92,6 +92,7 @@ fn dialog(character: &str, pos: &str, msg: &str) -> Markup {
 
 fn dialog_background(character: &str, pos: &str) -> String {
     match (character, pos) {
+        ("finger", "right") => "bg-blue-100".to_string(),
         (_, "left") => "bg-jasmine".to_string(),
         (_, "right") => "bg-seafoam".to_string(),
         _ => panic!(
@@ -146,6 +147,21 @@ fn character_avatar(character: &str) -> Markup {
                     <path fill="#00b8f0" d="m28.86 45l-4.75-13.3a1 1 0 0 1 .52-1.24l4.85-2.3a1 1 0 0 1 1.34.49L38.13 45Z"/>
                     <path fill="#4acfff" d="m24.73 33.43l3.87-1.84a1 1 0 0 1 1.35.5L35.72 45h2.41l-7.31-16.35a1 1 0 0 0-1.34-.49l-4.85 2.3a1 1 0 0 0-.52 1.24Z"/>
                     <path fill="none" stroke="#45413c" stroke-linecap="round" stroke-linejoin="round" d="m28.86 45l-4.75-13.3a1 1 0 0 1 .52-1.24l4.85-2.3a1 1 0 0 1 1.34.49L38.13 45Z"/>
+                </svg>
+            "##.into(),
+        ),
+        "finger" => PreEscaped(
+            r##"
+                <svg class="w-full h-full" width="512" height="512" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                    <path fill="#45413c" d="M13 45.5a11 1.5 0 1 0 22 0a11 1.5 0 1 0-22 0Z" opacity=".15"/>
+                    <path fill="#ffe500" d="M34.13 26.33V9a2.3 2.3 0 0 0-4.6 0v10.89a2.71 2.71 0 0 0-5.42 0a2.68 2.68 0 0 0-5.36 0v3.26a2.52 2.52 0 0 0-5 0v8.09a9.22 9.22 0 0 0 9.22 9.22h1.28a11.06 11.06 0 0 0 11.02-11.09a4.59 4.59 0 0 0-1.14-3.04Z"/>
+                    <path fill="#fff48c" d="M31.83 9.22a2.3 2.3 0 0 1 2.3 2.3V9a2.3 2.3 0 0 0-4.6 0v2.5a2.3 2.3 0 0 1 2.3-2.28ZM16.23 23.1a2.52 2.52 0 0 1 2.52 2.52v-2.5a2.52 2.52 0 0 0-5 0v2.5a2.52 2.52 0 0 1 2.48-2.52Zm5.2-3.42a2.68 2.68 0 0 1 2.68 2.68a2.71 2.71 0 0 1 5.42 0v-2.5a2.71 2.71 0 0 0-5.42 0a2.68 2.68 0 0 0-5.36 0v2.5a2.68 2.68 0 0 1 2.68-2.68Z"/>
+                    <path fill="none" stroke="#45413c" stroke-linecap="round" stroke-linejoin="round" d="M34.13 26.33V9a2.3 2.3 0 0 0-4.6 0v10.89a2.71 2.71 0 0 0-5.42 0v0a2.68 2.68 0 0 0-5.36 0v3.26a2.52 2.52 0 0 0-5 0v8.09a9.22 9.22 0 0 0 9.22 9.22h1.28a11.06 11.06 0 0 0 11.02-11.09a4.59 4.59 0 0 0-1.14-3.04Z"/>
+                    <path fill="none" stroke="#45413c" stroke-linecap="round" stroke-linejoin="round" d="M13.71 20.6h5.04v8.33h-5.04Z"/>
+                    <path fill="#fff48c" d="M35.27 29.37a4.6 4.6 0 0 0-4.6-4.6H20A1.23 1.23 0 0 0 18.75 26a4.38 4.38 0 0 0 .25 1.3a1.21 1.21 0 0 1 1-.56h11.1a4.55 4.55 0 0 1 4.17 2.63Z"/>
+                    <path fill="none" stroke="#45413c" stroke-linecap="round" stroke-linejoin="round" d="M35.27 29.37a4.6 4.6 0 0 0-4.6-4.6H20A1.23 1.23 0 0 0 18.75 26h0A4.22 4.22 0 0 0 23 30.22h5.24"/>
+                    <path fill="#ffe500" stroke="#45413c" stroke-linecap="round" stroke-linejoin="round" d="M24.11 19.89v4.88m5.42-4.88v4.88"/>
+                    <path fill="none" stroke="#45413c" stroke-linecap="round" stroke-linejoin="round" d="M28.15 30.22h0a4.44 4.44 0 0 0-4.44 4.44V36"/>
                 </svg>
             "##.into(),
         ),
