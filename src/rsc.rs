@@ -1,4 +1,5 @@
 use crate::images;
+use crate::xmarkdown::{EnhancedMd, Markdown};
 use lol_html::html_content::ContentType;
 use lol_html::{element, HtmlRewriter, Settings};
 use maud::{html, Markup, PreEscaped};
@@ -50,7 +51,15 @@ pub fn render(html: Markup) -> Markup {
                         .get_attribute("msg")
                         .expect("missing required attribute 'msg' for 'dialog'");
 
-                    let res = render(PreEscaped(dialog(&character, &pos, &msg).into_string()));
+                    let parse = el.get_attribute("parse").unwrap_or("html".to_string());
+                    let msg = match parse.as_str() {
+                        "html" => html! { p { (PreEscaped(msg)) } },
+                        "text" => html! { p { (msg) } },
+                        "markdown" => html! { (EnhancedMd(Markdown(msg))) },
+                        _ => panic!("invalid value for 'parse' attribute: {}", parse),
+                    };
+
+                    let res = render(PreEscaped(dialog(&character, &pos, msg).into_string()));
 
                     el.replace(&res.0, ContentType::Html);
                     Ok(())
@@ -62,7 +71,7 @@ pub fn render(html: Markup) -> Markup {
     )
 }
 
-fn dialog(character: &str, pos: &str, msg: &str) -> Markup {
+fn dialog(character: &str, pos: &str, msg: Markup) -> Markup {
     let icon = html! {
             div class="w-10 h-10 overflow-hidden shrink-0" {
                 (character_avatar(character))
@@ -73,7 +82,7 @@ fn dialog(character: &str, pos: &str, msg: &str) -> Markup {
         + " border border-black px-4 py-2 rounded-md shadow-neu-1 min-w-0 max-w-full";
     let msg = html! {
             div class=(msg_class) {
-                p { (PreEscaped(msg)) }
+                (msg)
             }
     };
 
