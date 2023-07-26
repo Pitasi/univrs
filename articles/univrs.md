@@ -4,9 +4,11 @@ datetime: 2023-07-24T21:02:01.000Z
 unlisted: true
 ---
 
-Instead of drowning in the labyrinth of mainstream frameworks like Next.js, I decided to take a wild turn: create my solution in Rust.
+Instead of drowning in the labyrinth of mainstream frameworks like Next.js, I
+decided to take a wild turn: create my solution in Rust.
 
-It's still convoluted, but I can lay out the implementation right here in this blog post. Can you say the same for Next.js?
+It's still convoluted, but I can lay out the implementation right here in this
+blog post. Can you say the same for Next.js?
 
 <dialog
     character=raisehand
@@ -19,15 +21,18 @@ It's still convoluted, but I can lay out the implementation right here in this b
     msg="
         Not at all!
         That would require an enormous amount of work and I only worked on this
-        in my spare time. I wanted to learn more Rust and played with it
+        in my spare time. I wanted to learn more about Rust and played with it
         building something that I could actually use in real life: a webserver.
     ">
 </dialog>
 
-I think of this as the Rust equivalent of [T3 Stack](https://create.t3.gg/). I did not implement a framework, I took existing libraries and put some glue in between them.
+I think of this as the Rust equivalent of [T3 Stack](https://create.t3.gg/). I
+did not implement a framework, I took existing libraries and put some glue in
+between them.
 
 ## The goal
 I know you're eager to dive in, let me show you what it looks like:
+
 - screenshots
 - custom comps in markdown
 
@@ -36,15 +41,57 @@ I know you're eager to dive in, let me show you what it looks like:
 Remember the good old days when internet pages were just HTML files hitching a ride over the internet? Yeah, those days. Well, they're not over! We've just made it more intricate than a season finale of a soap opera. If you're a frontend newbie, you might be fooled into believing that Node, JavaScript, React, or similar tools are a necessity to build a website.
 
 Let's begin our adventure:
-- excalidraw architecture AXUM --html-> USER
 
-- axum hello world
+<image avif="https://assets.anto.pt/articles/rsc/exc1.avif" webp="https://assets.anto.pt/articles/rsc/exc1.webp" png="https://assets.anto.pt/articles/rsc/exc1.png" ></image>
+
+```rust
+#[tokio::main]
+async fn main() {
+    let app = Router::new().route("/", get(handler));
+    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
+}
+
+async fn handler() -> impl IntoResponse {
+    Html("<h1>Hello</h1>")
+}
+```
 
 Now go and build your blog, that's all you need really.
 
 The next step is playing a bit with `format!()` to avoid duplicated HTML, that's often called templating.
 
-- axum hello world 2 pages sharing root layout
+```rust
+#[tokio::main]
+async fn main() {
+    let app = Router::new()
+        .route("/page1", get(page1))
+        .route("/page2", get(page2));
+    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
+}
+
+async fn layout(content: String) -> String {
+    format!("
+<h1>A fancy website title</h1>
+{content}
+    ")
+}
+
+async fn page1() -> impl IntoResponse {
+    Html(layout("<h1>Page 1</h1>"))
+}
+
+async fn page2() -> impl IntoResponse {
+    Html(layout("<h1>Page 2!!!</h1>"))
+}
+```
 
 I will be calling functions like `layout()` *components*. Because that's all they are if you think about it:
 
@@ -52,7 +99,7 @@ I will be calling functions like `layout()` *components*. Because that's all the
 // A JSX component
 function Nuts({ count }) {
     if (count < 0) {
-	return <p>You cannot have negative nuts</p>;
+        return <p>You cannot have negative nuts</p>;
     }
     return <h1>{count} nuts</h1>;
 }
@@ -63,9 +110,9 @@ equivalent to:
 // A Rust Server Component
 fn nuts(count: i64) -> String {
     if (count < 0) {
-	"<p>You cannot have negative nuts</p>".into()
+        "<p>You cannot have negative nuts</p>".into()
     } else {
-	format!("<h1>{count}</h1>")
+        format!("<h1>{count} nuts</h1>")
     }
 }
 ```
@@ -93,8 +140,10 @@ fn nuts(count: i64) -> String {
 </dialog>
 
 ## Server components
-Next.js and React have been pushing for RSC (the real ones, React Server Components).
-It's exactly what I did in the previous section, the JSX component is eventually rendered into a HTML string by the server.
+Next.js and React have been pushing for RSC (the real ones, React Server
+Components) lately.
+It's exactly what I did in the previous section, the JSX component is
+eventually rendered into a HTML string by the server.
 
 <dialog
     character=finger
@@ -106,11 +155,32 @@ It's exactly what I did in the previous section, the JSX component is eventually
     ">
 </dialog>
 
-JSX provide a far better DX than `format!()`, but I've found [maud](https://maud.lambda.xyz/), a crate that is pure gold. (Thanks Xe Iaso's site source code for making me discover maud). It's not as good as writing JSX but it's not bad either.
+JSX provide a far better DX than `format!()`, but I've found
+[maud](https://maud.lambda.xyz/), a crate that is pure gold. (Thanks Xe Iaso's
+[site](https://xeiaso.net) [source code](https://github.com/xe/site) for making
+me discover maud). It's not as good as writing JSX but it's not bad either.
 
-Even if we're adding a new dependency, keep in mind the philosophy of this project: being able to understand what's going on at all times. Something you definitely cannot do with React/Next.js/JSX, transpilers, bundlers. Maud is just our `format!()`.
+Even if we're adding a new dependency, keep in mind the philosophy of this
+project: being able to understand what's going on at all times. Something you
+definitely cannot do with React/Next.js/JSX, transpilers, bundlers, servers.
+Maud is just a fancier `format!()`:
 
-- TODO: write a component with Maud (pattern matching and loops)
+```rust
+// A Rust Server Component with maud
+fn nuts(count: i64) -> Markup {
+    // You can still put some logic here, if you want.
+    // However, maud templating conveniently supports if,
+    // let, match, and loops.
+
+    html! {
+        @if (count < 0) {
+            p { "You cannot have negative nuts" }
+        } else {
+            h1 { (count) " nuts" }
+        }
+    }
+}
+```
 
 <dialog
     character=raisehand
@@ -121,17 +191,19 @@ Even if we're adding a new dependency, keep in mind the philosophy of this proje
     ">
 </dialog>
 <dialog
+    parse=markdown
     character=bulb
     pos=right
     msg="
-        <code>Markup</code> is pretty much a <code>String</code>, but for
-        convenience I left it. If you put a normal <code>String</code> into
-        a Maud component, its content will be escaped. Returning Markup directly
-        is easier for nesting Maud components.
+`Markup` is pretty much a `String`, but it's also a convenient way of
+expressing *a string that contains HTML*. By default maud will escape strings
+contents. Returning `Markup` directly is easier for nesting Maud components.
     ">
 </dialog>
 
-The power of Maud is the ability to have control flows directly inside your template, it's so convenient. More abilities are documented in the [official website](https://maud.lambda.xyz/control-structures.html).
+The power of Maud is the ability to have control flows like if-s and loops
+directly inside your template. More features are documented in the [official
+website](https://maud.lambda.xyz/control-structures.html).
 
 One last thing about Maud: its `Render` trait.
 
@@ -144,9 +216,9 @@ struct Css(&'static str);
 impl Render for Css {
     fn render(&self) -> Markup {
         html! {
-			link rel="stylesheet" type="text/css" href=(self.0);
+            link rel="stylesheet" type="text/css" href=(self.0);
         }
-	}
+    }
 }
 ```
 
@@ -175,15 +247,17 @@ impl Render for Markdown {
 We can pull together a full webpage easily:
 ```rust
 pub async fn page() -> Markup {
+    // load content from a file, a database, ...
+    let content = "[Click me](https://www.youtube.com/watch?v=dQw4w9WgXcQ).".to_string();
+
     html! {
         h1 { "Sample Page" }
-        (Markdown("
-[Click me](https://www.youtube.com/watch?v=dQw4w9WgXcQ).
-        ".to_string()))
+        (Markdown(content))
     }
 }
 ```
-Beautiful:
+Beautiful result:
+
 <image png="https://assets.anto.pt/articles/rsc/sample_page.png" webp="https://assets.anto.pt/articles/rsc/sample_page.webp" avif="https://assets.anto.pt/articles/rsc/sample_page.avif"></image>
 
 ## MD...X?
@@ -203,30 +277,37 @@ MDX allows you to use JSX in your markdown content and I wanted something simila
 &lt;dialog character=bulb pos=right msg=&quot;Bingo. Here is our source code: &lt;pre&gt;&lt;code&gt;stack overflow&lt;/code&gt;&lt;/pre&gt;&quot;&gt;&lt;/dialog&gt;</code></pre>">
 </dialog>
 
-To achieve that, I'm adding one more crate: [lol-html](https://crates.io/crates/lol-html). Built by CloudFlare to power their Workers.
+To achieve that, I'm adding one more crate:
+[lol-html](https://crates.io/crates/lol-html). Built by CloudFlare to power
+their Workers:
 
-> _**L**ow **O**utput **L**atency streaming **HTML** rewriter/parser with CSS-selector based API._
+> _**L**ow **O**utput **L**atency streaming **HTML** rewriter/parser with
+> CSS-selector based API._
 
 What lol-html really is, is a fancy search-and-replace for HTML.
 
-You can search by using CSS selectors, and replace by using a set of API they expose.
-First you set up a `rewriter`, then you feed it with your HTML stream. Let's see an example for rewriting all `<a href="http://..."` with a `https` version:
+You can search by using CSS selectors, and replace by using a set of API they
+expose.
+First, you set up a `rewriter`, then you feed it with your HTML stream.
+
+Let's see an example for rewriting all `<a href="http://..."` with a `https`
+version:
 
 ```rust
 let mut output = vec![];
 let mut rewriter = HtmlRewriter::new(
         Settings {
             element_content_handlers: vec![
-		        // match all <a>
+                // match all <a>
                 element!("a[href]", |el| {
-	                // extract their href
+                    // extract their href
                     let href = el
                         .get_attribute("href")
                         .expect("href was required")
                         // put an s in that http
                         .replace("http:", "https:");
 
-					// replace the href value
+                    // replace the href value
                     el.set_attribute("href", &href)?;
 
                     Ok(())
@@ -236,23 +317,26 @@ let mut rewriter = HtmlRewriter::new(
         },
         |c: &[u8]| output.extend_from_slice(c)
     );
-    
+
+// lol-html is built from streaming content really, so you can feed chunks to
+// the rewriter
 rewriter.write(b"<div><a href=")?;
 rewriter.write(b"http://example.com>")?;
 rewriter.write(b"</a></div>")?;
 rewriter.end()?;
 
 assert_eq!(
-	String::from_utf8(output)?,
-	r#"<div><a href="https://example.com"></a></div>"#
+    String::from_utf8(output)?,
+    r#"<div><a href="https://example.com"></a></div>"#
 );
 ```
 
-We can build a generalized version that wraps a component applying the provided Settings:
+We can build a generalized version that wraps a component applying the provided
+Settings:
 ```rust
 use maud::{Markup, PreEscaped};
 
-pub fn apply<'s, 'h>(settings: Settings<'s, 'h>, html: Markup) -> Markup {
+pub fn apply_rewriter<'s, 'h>(settings: Settings<'s, 'h>, html: Markup) -> Markup {
     let mut output = vec![];
     let mut rewriter = HtmlRewriter::new(settings, |c: &[u8]| output.extend_from_slice(c));
     rewriter.write(html.0.as_bytes()).unwrap();
@@ -261,23 +345,33 @@ pub fn apply<'s, 'h>(settings: Settings<'s, 'h>, html: Markup) -> Markup {
 }
 ```
 
-Now we can enhance our Markdown component, with a little juggling between types:
+Now we can build an enhanced version of our Markdown component by wrapping it
+and calling `apply_rewriter()` after rendering the markdown content:
 ```rust
 
 pub struct EnhancedMd(pub Markdown);
 
 impl Render for EnhancedMd {
     fn render(&self) -> Markup {
-        apply(
+        apply_rewriter(
             Settings {
-				// define an <alert msg=xxx> component
-                element_content_handlers: vec![element!("alert", |el| {
-                    let msg = el.get_attribute("msg").expect("msg attribute is required");
-                    el.replace_comp(html! {
-                        div style="background: red; padding: 10px;" { (msg) }
-                    });
-                    Ok(())
-                })],
+                // define an <alert msg=xxx> component
+                element_content_handlers: vec![
+                    // match <alert>
+                    element!("alert", |el| {
+                        let msg = el.get_attribute("msg")
+                            .expect("msg attribute is required");
+
+                        // replace the entire <alert> tag with our
+                        // maud component
+                        el.replace_comp(html! {
+                            div style="background: red; padding: 10px;" {
+                                (msg)
+                            }
+                        });
+                        Ok(())
+                    })
+                ],
                 ..Settings::default()
             },
             html! {
@@ -287,7 +381,8 @@ impl Render for EnhancedMd {
     }
 }
 
-// add replace_comp() to lol-html's Elements so that we can pass Markup components directly
+// add a convenient replace_comp() to lol-html's Elements so that we can pass
+// Markup components directly instead of wrestling with Strings
 pub trait ComponentReplacer {
     fn replace_comp(&mut self, comp: Markup);
 }
@@ -299,18 +394,23 @@ impl ComponentReplacer for Element<'_, '_> {
 }
 ```
 
-And use it:
+I hope I didn't lose you into implementation details, the resulting usage is
+much cleaner:
+
 ```rust
 pub async fn page() -> Markup {
-    html! {
-        h1 { "Sample Page" }
-        (EnhancedMd::from(r#"
+    let content = r#"
 [Click me](https://www.youtube.com/watch?v=dQw4w9WgXcQ).
 <alert msg="you should really click that link"></alert>
-        "#.to_string()))
+        "#.to_string()
+
+    html! {
+        h1 { "Sample Page" }
+        (EnhancedMd(Markdown(content)))
     }
 }
 ```
+
 <image png="https://assets.anto.pt/articles/rsc/enhanced_sample_page.png" webp="https://assets.anto.pt/articles/rsc/enhanced_sample_page.webp" avif="https://assets.anto.pt/articles/rsc/enhanced_sample_page.avif"></image>
 
 <dialog
@@ -318,13 +418,25 @@ pub async fn page() -> Markup {
     pos=right
     character=finger
     msg="
-*Note*: unfortunately, I was not able to use lol-html to replace components'
-inner content. You can build a component like that:
-`<alert msg=foo></alert>`; but not `<alert>foo</alert>`.
+Unfortunately due to the streaming-oriented nature of lol-html, I was
+not able to use it to replace components' inner content. You can build a
+component like that: `<alert msg=foo></alert>`; but not `<alert>foo</alert>`.
     ">
 </dialog>
 
 ## Going interactive
+
+It's all good and easy to write some static-ish content. The most dynamic thing
+you can do now is to load your markdown content from a file or from a database.
+
+What about some real interactivity for your users though? I wanted that `<3`
+button you can see in the top-right corner of my website! (BTW, if you're
+enjoying this article, this could be the perfect moment to click it! A login is
+required though.)
+
+I'm going to start by building a skeleton of something interactive. Like most
+frameworks, here's a little counter:
+
 ```rust
 use maud::{html, Markup};
 
@@ -497,9 +609,9 @@ To end with a pretty example of this, here's how I'm automatically selecting the
 ```rust
 // path is something like "dir/picture.jpg"
 pub fn static_img(path: &str, alt: &str, class: &str) -> Markup {
-	// `search_available_sources` will access filesystem to find
-	// other variants: dir/picture.avif, dir/picture.webp, ...
-	// They will be sorted by their actual size on the filesystem.
+    // `search_available_sources` will access filesystem to find
+    // other variants: dir/picture.avif, dir/picture.webp, ...
+    // They will be sorted by their actual size on the filesystem.
     let sources = search_available_sources(path);
     if sources.is_empty() {
         panic!("couldn't find any image source for {}", path);
@@ -509,19 +621,30 @@ pub fn static_img(path: &str, alt: &str, class: &str) -> Markup {
 
     html! {
         picture class="contents" {
-	        // best formats first
+            // best formats first
             @for source in sources {
-                source srcset=(format!("/{}", source.path())) type=(source.mime_type());
+                source
+                    srcset=(format!("/{}", source.path()))
+                    type=(source.mime_type());
             }
 
-			// fallback
-            img src=(format!("/{}", fallback.path())) class=(class) alt=(alt) loading="lazy" decoding="async";
+            // fallback
+            img
+                src=(format!("/{}", fallback.path()))
+                class=(class)
+                alt=(alt)
+                loading="lazy"
+                decoding="async";
         }
     }
 }
 ```
 
-If you enjoyed this article you can find me on Mastodon: [@zaphodias@hachyderm.io](https://hachyderm.io/@zaphodias). Any constructive critique is much appreciated!
+---
 
-Cheers.
+If you enjoyed this article you can find me on Mastodon:
+[@zaphodias@hachyderm.io](https://hachyderm.io/@zaphodias).
+I appreciate any constructive critique that makes me learn something new!
+
+Cheers 🖖
 
