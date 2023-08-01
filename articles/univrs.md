@@ -1,5 +1,5 @@
 ---
-title: "univrs"
+title: "Rust Server Components"
 datetime: 2023-07-24T21:02:01.000Z
 unlisted: true
 ---
@@ -33,12 +33,16 @@ between them.
 ## The goal
 I know you're eager to dive in, let me show you what it looks like:
 
-- screenshots
-- custom comps in markdown
+- TODO: screenshots
+- TODO: custom comps in markdown
 
 ## Old school server-side rendering
 
-Remember the good old days when internet pages were just HTML files hitching a ride over the internet? Yeah, those days. Well, they're not over! We've just made it more intricate than a season finale of a soap opera. If you're a frontend newbie, you might be fooled into believing that Node, JavaScript, React, or similar tools are a necessity to build a website.
+Remember the good old days when internet pages were just HTML files hitching a
+ride over the internet? Yeah, those days. Well, they're not over! We've just
+made it more intricate than a season finale of a soap opera. If you're a
+frontend newbie, you might be fooled into believing that Node, JavaScript,
+React, or similar tools are a necessity to build a website.
 
 Let's begin our adventure:
 
@@ -62,7 +66,8 @@ async fn handler() -> impl IntoResponse {
 
 Now go and build your blog, that's all you need really.
 
-The next step is playing a bit with `format!()` to avoid duplicated HTML, that's often called templating.
+The next step is playing a bit with `format!()` to avoid duplicated HTML,
+that's often called templating.
 
 ```rust
 #[tokio::main]
@@ -93,7 +98,8 @@ async fn page2() -> impl IntoResponse {
 }
 ```
 
-I will be calling functions like `layout()` *components*. Because that's all they are if you think about it:
+I will be calling functions like `layout()` *components*. Because that's all
+they are if you think about it:
 
 ```javascriptx
 // A JSX component
@@ -207,7 +213,9 @@ website](https://maud.lambda.xyz/control-structures.html).
 
 One last thing about Maud: its `Render` trait.
 
-By implementing `Render`, any type can customize the HTML it will produce when rendered by Maud. By default, the standard `Display` trait is used, but by implementing `Render` manually we can override the behaviour.
+By implementing `Render`, any type can customize the HTML it will produce when
+rendered by Maud. By default, the standard `Display` trait is used, but by
+implementing `Render` manually we can override the behaviour.
 
 This comes in handy for building our custom components:
 ```rust
@@ -223,11 +231,14 @@ impl Render for Css {
 ```
 
 ## Markdown components
-We have learned how to define our custom components, so let's build another useful one: a markdown renderer.
+
+We have learned how to define our custom components, so let's build another
+useful one: a markdown renderer.
 
 For that, I will add a new crate to our tool belt: [comrak](https://docs.rs/comrak/latest/comrak/).
 
 Defining such a component it's trivial once you have comrak: 
+
 ```rust
 use comrak::{markdown_to_html, ComrakOptions};
 
@@ -429,13 +440,13 @@ component like that: `<alert msg=foo></alert>`; but not `<alert>foo</alert>`.
 It's all good and easy to write some static-ish content. The most dynamic thing
 you can do now is to load your markdown content from a file or from a database.
 
-What about some real interactivity for your users though? I wanted that `<3`
-button you can see in the top-right corner of my website! (BTW, if you're
-enjoying this article, this could be the perfect moment to click it! A login is
-required though.)
+What about some real interactivity for your users though? For my website I
+wanted that `<3` button you can see in the top-right corner!
+(BTW, if you're enjoying this article, this could be the perfect moment to
+click it! A login is required though.)
 
 I'm going to start by building a skeleton of something interactive. Like most
-frameworks, here's a little counter:
+frameworks do as a demo, here's a little counter:
 
 ```rust
 use maud::{html, Markup};
@@ -443,8 +454,9 @@ use maud::{html, Markup};
 static mut COUNTER: u32 = 0;
 
 pub fn counter() -> Markup {
-    // do some heavy db query here
+    // fetch data from a real db instead of accessing global state
     let c = unsafe { COUNTER };
+
     html! {
         div {
             p { "Counter:" (c) }
@@ -466,9 +478,16 @@ pub async fn page() -> Markup {
 
 Clicking the button doesn't do anything, yet.
 
-We'll be using a JavaScript library that recently gained a lot of popularity, as it allows to not write any JavaScript: [htmx](https://htmx.org/).
+We'll be using a JavaScript library that recently gained a lot of popularity:
+[htmx](https://htmx.org/). With htmx, we'll make our component interactive by
+writing the correct amount of JavaScript: zero.
 
-The idea is that when the user clicks on the button, it will fire a `POST /components/counter/increment` request to our server, that will update the counter and reply with the updated HTML of that component.
+The idea is that when the user clicks on the button, it will fire a `POST
+/components/counter/increment` request to our server, that will update the
+counter in its global state and reply with the updated HTML of that component.
+
+Let's register a new `counter_increment()` route handler in our Axum's router.
+For the response, we can reuse the function `counter()` we defined earlier.
 
 ```rust
 // register new routes specific to this component to the axum router
@@ -504,6 +523,7 @@ pub async fn page() -> Markup {
 ```
 
 We can easily test our new endpoint with `curl`:
+
 ```sh
 $ curl -XPOST http://localhost:3000/components/counter/increment
 <div><p>Counter: 1</p><button>Increment</button></div>
@@ -512,7 +532,9 @@ $ curl -XPOST http://localhost:3000/components/counter/increment
 <div><p>Counter: 2</p><button>Increment</button></div>
 ```
 
-Sweet. Now let's make the button call the endpoint and swap its content:
+Sweet. Now to add interactivity, let's add the "on click" event that will fire
+the same HTTP request and swap its content with the response:
+
 ```rust
 pub fn counter() -> Markup {
     // do some heavy db query here
@@ -521,10 +543,15 @@ pub fn counter() -> Markup {
         div {
             p { "Counter: " (c) }
             button
-                // specifying the element to be replaced and the request
-                // to make it's all we need
+                // target: element that will be replaced
                 hx-target="closest div"
+
+                // method and url of the request
                 hx-post="/components/counter/increment"
+
+                // since it's a button, htmx by default will set the trigger
+                // to be on click
+
                 { "Increment" }
         }
     }
@@ -540,25 +567,40 @@ pub async fn page() -> Markup {
 }
 ```
 
-And it works:
+And just like that, it works:
+
 <image png="https://assets.anto.pt/articles/rsc/sample_page_counter_working.png" webp="https://assets.anto.pt/articles/rsc/sample_page_counter_working.webp" avif="https://assets.anto.pt/articles/rsc/sample_page_counter_working.avif"></image>
 
-This is not an htmx tutorial, I just wanted to showcase how convenient can be to share the same function `counter()` both as a "regular page" that as an endpoint for HTMX.
+This is not an htmx tutorial, I just wanted to showcase how convenient can be
+to share the same function `counter()` both as a "regular page" that as an
+endpoint for htmx.
 
-It's also useful for where I'm going next, suspense...
+We also set the ground for where I'm going next, suspense...
 
-## Building <Suspense />
-We covered a lot, and I must say I was already incredibly happy with all I learned and built along the way. I was so engaged with this pet project that I didn't want to stop there though.
+## Building `<Suspense />`
 
-React supports a component called `<Suspense />`, which is typically used for showing a fallback component (e.g. a loading state) while the real component is still rendering (on the server).
+I could stop right there and I'd be already satisfied with the things I learned
+about Rust, Axum, and all the libraries I used. It was so refreshing to things
+differently that I didn't want to stop though.
 
-In our system that could mean that I don't want to block the render of my page while performing a database query for example.
+React provides a component called `<Suspense />`, which is typically used for
+showing a fallback component (e.g. a loading state) while the real component is
+still rendering (on the server).
 
-Think of our previous `counter()` component, imagine if fetching that number from a 3rd party service takes 500ms. If we don't care about the SEO, we can avoid blocking the entire page and let the client fetch the `counter()` component lazily.
+In my website, I don't think I should be blocking the entire page rendering on
+the server while waiting for the database query that returns the number of
+likes to return. It's not something that I care about for the SEO anyway.
+
+Think of our previous `counter()` component, imagine if fetching that number
+from a 3rd party service takes 500ms. We should let the client fetch the
+`counter()` component lazily, after the important content.
 
 - todo excalidraw timeline diagram
 
-By having htmx in place, doing that it's not hard. First I'm going to register a new `GET /components/counter` route that will just return the counter component:
+We can leverage htmx, and it's a lot easier than you might think. First I'm
+going to register a new `GET /components/counter` route that will just return
+the counter component:
+
 ```rust
 pub fn register(router: Router) -> Router {
     router
@@ -573,7 +615,9 @@ pub async fn counter_get() -> Markup {
 
 ```
 
-And since we don't want to render `counter()`, let's fix the page template:
+And since we don't want to render `counter()` anymore, let's replace it with a
+placeholder div that will trigger the GET request as soon as the page is ready:
+
 ```rust
 pub async fn page() -> Markup {
     html! {
@@ -587,11 +631,14 @@ pub async fn page() -> Markup {
 }
 ```
 
-Try adding a `sleep()` inside the `counter()` function and you'll see that the rest of the page (i.e. the Sample Page title) will render anyway.
+At this point you can try adding a `sleep()` inside the `counter()` function
+and you'll see that the rest of the page (i.e. the title and the loading text)
+will render straight away.
 
-And if you want you can build your own `suspense()` component like this:
+To keep things clean and nice, write your own `suspense()` component!
+
 ```rust
-pub fn lazy(route: &str, placeholder: Markup) -> Markup {
+pub fn suspense(route: &str, placeholder: Markup) -> Markup {
     html! {
         // this div will be replaced as soon as the page loads
         div hx-trigger="load" hx-get=(route) {
@@ -603,9 +650,21 @@ pub fn lazy(route: &str, placeholder: Markup) -> Markup {
 
 ## Future work
 
-What I showed here is a proof of concept. I'll keep using these libraries and see how it goes, but since I'm not committing to a framework I think I'll be able to build my custom components as I wish.
+I didn't want to go too deep into implementation details. I wanted to focus on
+my idea, my proof of concept.
 
-To end with a pretty example of this, here's how I'm automatically selecting the best possible image format to serve (e.g. AVIF, WEBP, JPG, ...):
+My personal website is now build this way and its source code live at:
+https://github.com/Pitasi/univrs.
+
+I'm not releasing this as a "library" or "framework". If enough people are
+interested, we can build boilerplates repositories as a starting point. It's
+important to me that anything I used can be swapped easily.
+
+The nicest thing about this approach, was the freedom to write any kind of
+logic I wanted. To end with an example, here's how I'm
+automatically selecting the best possible image format to serve (e.g. AVIF,
+WEBP, JPG, ...) based on the files available in the folder:
+
 ```rust
 // path is something like "dir/picture.jpg"
 pub fn static_img(path: &str, alt: &str, class: &str) -> Markup {
@@ -643,8 +702,11 @@ pub fn static_img(path: &str, alt: &str, class: &str) -> Markup {
 ---
 
 If you enjoyed this article you can find me on Mastodon:
-[@zaphodias@hachyderm.io](https://hachyderm.io/@zaphodias).
-I appreciate any constructive critique that makes me learn something new!
+[@zaphodias@hachyderm.io](https://hachyderm.io/@zaphodias) or
+[LinkedIn](https://linkedin.com/in/pitasi).
+
+I hardly take anything personally and appreciate any constructive critique that
+makes me learn something new!
 
 Cheers 🖖
 
