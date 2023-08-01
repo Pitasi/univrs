@@ -31,10 +31,24 @@ did not implement a framework, I took existing libraries and put some glue in
 between them.
 
 ## The goal
-I know you're eager to dive in, let me show you what it looks like:
 
-- TODO: screenshots
-- TODO: custom comps in markdown
+I know you're eager to dive in, so let me show you what it looks like.
+
+This very blog page is rendered by a "Rust Server Component":
+
+<image avif="https://assets.anto.pt/articles/rsc/showcase.avif"
+    webp="https://assets.anto.pt/articles/rsc/showcase.webp"
+    png="https://assets.anto.pt/articles/rsc/showcase.png"></image>
+
+While the actual content of this article is written in Markdown, with a few
+custom components I defined:
+
+<image avif="https://assets.anto.pt/articles/rsc/showcase_md.avif"
+    webp="https://assets.anto.pt/articles/rsc/showcase_md.webp"
+    png="https://assets.anto.pt/articles/rsc/showcase_md.png"></image>
+
+I'm pretty excited with the result I achieved, so let's go!
+
 
 ## Old school server-side rendering
 
