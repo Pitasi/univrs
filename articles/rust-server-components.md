@@ -64,10 +64,8 @@ async fn handler() -> impl IntoResponse {
 }
 ```
 
-Now go and build your blog, that's all you need really.
-
-The next step is playing a bit with `format!()` to avoid duplicated HTML,
-that's often called templating.
+Before building a simple website like a blog, the next natural step is playing
+a bit with `format!()` to avoid duplicated HTML:
 
 ```rust
 #[tokio::main]
@@ -111,7 +109,8 @@ function Nuts({ count }) {
 }
 ```
 
-equivalent to:
+is equivalent to:
+
 ```rust
 // A Rust Server Component
 fn nuts(count: i64) -> String {
@@ -166,10 +165,13 @@ JSX provide a far better DX than `format!()`, but I've found
 [site](https://xeiaso.net) [source code](https://github.com/xe/site) for making
 me discover maud). It's not as good as writing JSX but it's not bad either.
 
-Even if we're adding a new dependency, keep in mind the philosophy of this
-project: being able to understand what's going on at all times. Something you
-definitely cannot do with React/Next.js/JSX, transpilers, bundlers, servers.
-Maud is just a fancier `format!()`:
+The great thing is that you can't make mistakes like forgetting to close a
+`<p>` or your code won't even compile.
+
+Since we are adding a new dependency, I want to keep in mind the philosophy of
+this project: being able to understand what's going on at all times.
+
+Maud is just a fancier `format!()` that looks like that:
 
 ```rust
 // A Rust Server Component with maud
@@ -192,7 +194,7 @@ fn nuts(count: i64) -> Markup {
     character=raisehand
     pos=left
     msg="
-        You say that maud is just <code>format!()</code>. Why the function now
+        If maud is just a fancier <code>format!()</code>, why the function now
         returns <code>Markup</code> instead of <code>String</code>?
     ">
 </dialog>
@@ -201,9 +203,9 @@ fn nuts(count: i64) -> Markup {
     character=bulb
     pos=right
     msg="
-`Markup` is pretty much a `String`, but it's also a convenient way of
-expressing *a string that contains HTML*. By default maud will escape strings
-contents. Returning `Markup` directly is easier for nesting Maud components.
+`Markup` is a `String`, but it's also a way to express *a string that contains
+HTML*. By default maud will escape strings contents. Returning `Markup`
+directly is easier for nesting Maud components.
     ">
 </dialog>
 
@@ -235,7 +237,8 @@ impl Render for Css {
 We have learned how to define our custom components, so let's build another
 useful one: a markdown renderer.
 
-For that, I will add a new crate to our tool belt: [comrak](https://docs.rs/comrak/latest/comrak/).
+For that, I will add a new crate to our tool belt:
+[comrak](https://docs.rs/comrak/latest/comrak/).
 
 Defining such a component it's trivial once you have comrak: 
 
@@ -255,7 +258,8 @@ impl Render for Markdown {
 }
 ```
 
-We can pull together a full webpage easily:
+And now we can pull together a full webpage easily:
+
 ```rust
 pub async fn page() -> Markup {
     // load content from a file, a database, ...
@@ -267,12 +271,14 @@ pub async fn page() -> Markup {
     }
 }
 ```
-Beautiful result:
+
+Check out this beautiful result, appreciating what we achieved so far:
 
 <image png="https://assets.anto.pt/articles/rsc/sample_page.png" webp="https://assets.anto.pt/articles/rsc/sample_page.webp" avif="https://assets.anto.pt/articles/rsc/sample_page.avif"></image>
 
 ## MD...X?
-MDX allows you to use JSX in your markdown content and I wanted something similar.
+MDX allows you to use JSX in your markdown content. I wanted something similar
+for this blog.
 
 <dialog
     character=raisehand
@@ -299,6 +305,7 @@ What lol-html really is, is a fancy search-and-replace for HTML.
 
 You can search by using CSS selectors, and replace by using a set of API they
 expose.
+
 First, you set up a `rewriter`, then you feed it with your HTML stream.
 
 Let's see an example for rewriting all `<a href="http://..."` with a `https`
@@ -344,6 +351,7 @@ assert_eq!(
 
 We can build a generalized version that wraps a component applying the provided
 Settings:
+
 ```rust
 use maud::{Markup, PreEscaped};
 
@@ -356,8 +364,8 @@ pub fn apply_rewriter<'s, 'h>(settings: Settings<'s, 'h>, html: Markup) -> Marku
 }
 ```
 
-Now we can build an enhanced version of our Markdown component by wrapping it
-and calling `apply_rewriter()` after rendering the markdown content:
+And use it to enhance out Markdown component by wrapping it and calling
+`apply_rewriter()` after the markdown content has been rendered:
 ```rust
 
 pub struct EnhancedMd(pub Markdown);
@@ -385,6 +393,8 @@ impl Render for EnhancedMd {
                 ],
                 ..Settings::default()
             },
+
+            // apply the rewriter to the Markdown component itself
             html! {
                 (&self.0)
             },
@@ -405,8 +415,8 @@ impl ComponentReplacer for Element<'_, '_> {
 }
 ```
 
-I hope I didn't lose you into implementation details, the resulting usage is
-much cleaner:
+I hope I didn't lose you into implementation details, the usage is much
+cleaner:
 
 ```rust
 pub async fn page() -> Markup {
@@ -497,14 +507,15 @@ pub fn register(router: Router) -> Router {
 
 static mut COUNTER: u32 = 0;
 
-// handle POST requests
 pub async fn counter_increment() -> Markup {
+    // update state
     unsafe { COUNTER += 1 };
+
+    // return updated HTML
     counter()
 }
 
 pub fn counter() -> Markup {
-    // do some heavy db query here
     let c = unsafe { COUNTER };
     html! {
         div {
@@ -585,17 +596,19 @@ differently that I didn't want to stop though.
 
 React provides a component called `<Suspense />`, which is typically used for
 showing a fallback component (e.g. a loading state) while the real component is
-still rendering (on the server).
+still rendering on the server.
 
-In my website, I don't think I should be blocking the entire page rendering on
-the server while waiting for the database query that returns the number of
-likes to return. It's not something that I care about for the SEO anyway.
+In my blog, I didn't want to block the entire page rendering while waiting for
+the database query that returns the number of `<3`. It's not something that I
+care about for the SEO anyway so it can safely be deferred for later.
 
 Think of our previous `counter()` component, imagine if fetching that number
 from a 3rd party service takes 500ms. We should let the client fetch the
 `counter()` component lazily, after the important content.
 
-- todo excalidraw timeline diagram
+<image avif="https://assets.anto.pt/articles/rsc/exc2.avif"
+    webp="https://assets.anto.pt/articles/rsc/exc2.webp"
+    png="https://assets.anto.pt/articles/rsc/exc2.png"></image>
 
 We can leverage htmx, and it's a lot easier than you might think. First I'm
 going to register a new `GET /components/counter` route that will just return
@@ -633,7 +646,7 @@ pub async fn page() -> Markup {
 
 At this point you can try adding a `sleep()` inside the `counter()` function
 and you'll see that the rest of the page (i.e. the title and the loading text)
-will render straight away.
+will render straight away and won't be blocked by your sleep.
 
 To keep things clean and nice, write your own `suspense()` component!
 
@@ -653,12 +666,12 @@ pub fn suspense(route: &str, placeholder: Markup) -> Markup {
 I didn't want to go too deep into implementation details. I wanted to focus on
 my idea, my proof of concept.
 
-My personal website is now build this way and its source code live at:
+My personal website is now built this way and its source code is available at:
 https://github.com/Pitasi/univrs.
 
 I'm not releasing this as a "library" or "framework". If enough people are
-interested, we can build boilerplates repositories as a starting point. It's
-important to me that anything I used can be swapped easily.
+interested, we can build boilerplates repositories or components as a starting
+point. It's important to me that anything I used can be swapped easily.
 
 The nicest thing about this approach, was the freedom to write any kind of
 logic I wanted. To end with an example, here's how I'm
