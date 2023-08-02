@@ -1,7 +1,6 @@
 ---
 title: "Rust Server Components"
-datetime: 2023-07-24T21:02:01.000Z
-unlisted: true
+datetime: 2023-08-02T19:13:00.000Z
 ---
 
 I didn't want to get lost in the maze of popular frameworks like Next.js, so I chose to do something crazy: I wrote my solution in Rust.
