@@ -32,9 +32,9 @@ I know you're excited to dive in, so let me show you what it looks like.
 
 A "Rust Server Component" renders this blog page:
 
-<image avif="https://assets.anto.pt/articles/rsc/showcase.avif"
-    webp="https://assets.anto.pt/articles/rsc/showcase.webp"
-    png="https://assets.anto.pt/articles/rsc/showcase.png"></image>
+<image avif="https://assets.anto.pt/articles/rsc/showcase2.avif"
+    webp="https://assets.anto.pt/articles/rsc/showcase2.webp"
+    png="https://assets.anto.pt/articles/rsc/showcase2.png"></image>
 
 While the main text of this blog is written in Markdown, I have added a few unique components:
 
@@ -49,7 +49,7 @@ I'm really pleased with the outcome, so let's go!
 
 Remember when internet pages were just HTML files that traveled through the internet? Those days, sure. Well, they're not over yet! We just made it more complicated than a soap show season end. If you're new to frontend development, you might be tricked into thinking that you need Node, JavaScript, React, or similar tools to build a website.
 
-Let us begin our journey:
+Let us begin our journey, by writing the simplest of the webservers:
 
 <image avif="https://assets.anto.pt/articles/rsc/exc1.avif" webp="https://assets.anto.pt/articles/rsc/exc1.webp" png="https://assets.anto.pt/articles/rsc/exc1.png" ></image>
 
@@ -65,11 +65,11 @@ async fn main() {
 }
 
 async fn handler() -> impl IntoResponse {
-    Html("<h1>Hello</h1>")
+    Html("<h1>Hello!</h1>")
 }
 ```
 
-Before creating a basic website, such as a blog, the next natural thing to do is to experiment with 'format!()' to eliminate duplicated HTML:
+Before creating a basic website, such as a blog, the next natural thing to do is to experiment with `format!()` to eliminate duplicated HTML:
 
 ```rust
 #[tokio::main]
@@ -100,7 +100,7 @@ async fn page2() -> impl IntoResponse {
 }
 ```
 
-I'll refer to methods like 'layout()' as *components*. Because, when you think about it, that's all they are:
+I'll refer to methods like `layout()` as *components*. Because, when you think about it, that's all they are:
 
 ```javascriptx
 // A JSX component
@@ -147,7 +147,7 @@ You need to put some meaningful content now or no one will ever trust you again.
 
 ## Server components
 
-Recently, Nextjs and React have been pushing for RSC (the real ones, React Server Components).
+Recently, Next.js and React have been pushing for RSC (the real ones, React Server Components).
 
 The server finally renders the JSX component into an HTML string, just as I did in the previous section.
 
@@ -157,11 +157,11 @@ The server finally renders the JSX component into an HTML string, just as I did 
     msg="
         Dan Abramov made
         <a href='https://youtu.be/zMf_xeGPn6s'>this amazing presentation</a>
-        where he used Internet Explorer to navigate a page built with RSC.
+        where he used Internet Explorer to navigate a webapp built with RSC.
     ">
 </dialog>
 
-JSX provides significantly superior DX than 'format!()', however I've discovered [maud](https://maud.lambda.xyz/), a pure gold crate. (I discovered maud thanks to Xe Iaso's [site](https://xeiaso.net) [source code](https://github.com/xe/site)).
+JSX provides significantly superior DX than `format!()`, however I've discovered [Maud](https://maud.lambda.xyz/), a pure gold crate. (I discovered Maud thanks to Xe Iaso's [site](https://xeiaso.net) [source code](https://github.com/xe/site)).
 It's not as good as writing JSX, but it's still not terrible.
 
 The best part is that you can't make mistakes like forgetting to close a `<p>` otherwise your code will fail to build.
@@ -171,10 +171,10 @@ Since we're introducing a new dependency, I'd want to remind you of the project'
 Maud is simply a nicer version of `format!()` that looks like this:
 
 ```rust
-// A Rust Server Component with maud
+// A Rust Server Component with Maud
 fn nuts(count: i64) -> Markup {
     // You can still put some logic here, if you want.
-    // However, maud templating conveniently supports if,
+    // However, Maud templating conveniently supports if,
     // let, match, and loops.
 
     html! {
@@ -191,7 +191,7 @@ fn nuts(count: i64) -> Markup {
     character=raisehand
     pos=left
     msg="
-        If maud is just a fancier <code>format!()</code>, why the function now
+        If Maud is just a fancier <code>format!()</code>, why the function now
         returns <code>Markup</code> instead of <code>String</code>?
     ">
 </dialog>
@@ -201,7 +201,7 @@ fn nuts(count: i64) -> Markup {
     pos=right
     msg="
 `Markup` is a `String`, but it's also a way to express *a string that contains
-HTML*. By default maud will escape strings contents. Returning `Markup`
+HTML*. By default Maud will escape strings contents. Returning `Markup`
 directly is easier for nesting Maud components.
     ">
 </dialog>
@@ -228,7 +228,7 @@ impl Render for Css {
 
 ## Markdown components
 
-Now that we've learnt how to design custom components, let's create another useful one: a markdown renderer.
+Now that we've learned how to design custom components, let's create another useful one: a markdown renderer.
 
 For that, I will add a new crate to our tool belt: [comrak](https://docs.rs/comrak/latest/comrak/).
 
@@ -282,7 +282,7 @@ MDX enables the usage of JSX in markdown documents. For my blog, I wanted someth
     character=bulb
     pos=right
     msg="
-        Bingo. Here is our source code:
+        Bingo. For example, here is our source code:
         <pre><code>&lt;dialog character=raisehand pos=left msg=&quot;Are we the reason you wanted custom components?&quot;&gt;&lt;/dialog&gt;
 &lt;dialog character=bulb pos=right msg=&quot;Bingo. Here is our source code: &lt;pre&gt;&lt;code&gt;stack overflow&lt;/code&gt;&lt;/pre&gt;&quot;&gt;&lt;/dialog&gt;</code></pre>">
 </dialog>
@@ -525,8 +525,8 @@ Sweet. To make it interactive, let's add a "on click" event that sends the same 
 
 ```rust
 pub fn counter() -> Markup {
-    // do some heavy db query here
     let c = unsafe { COUNTER };
+
     html! {
         div {
             p { "Counter: " (c) }
@@ -629,9 +629,9 @@ I didn't want to get too deep into implementation specifics in this article. I w
 
 My own website is now developed in this manner, and the source code is available at: https://github.com/Pitasi/univrs.
 
-I'm not distributing it as a "library" or "framework". If there is significant interest, I can provide boilerplate repositories or components as a starting point. It's critical to me that any piece being used it easily interchangeable.
+I'm not distributing it as a "library" or "framework". If there is significant interest, I can provide boilerplate repositories or components as a starting point. It's critical to me that any piece being used it's easily interchangeable.
 
-Being able to develop any sort of logic I wanted was the best part about this approach. As a final point, here's how I automatically select the best image format to serve (e.g., AVIF, WEBP, JPG,...) depending on what's contained in its folder:
+Being able to develop any sort of logic I wanted was the best part about this approach. As a final point, here's how I automatically select the best image format to serve (e.g., AVIF, WEBP, JPG,...) depending on what's contained in the image folder itself:
 
 ```rust
 // path is something like "dir/picture.jpg"
