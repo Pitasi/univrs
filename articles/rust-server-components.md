@@ -4,61 +4,52 @@ datetime: 2023-07-24T21:02:01.000Z
 unlisted: true
 ---
 
-Instead of drowning in the labyrinth of mainstream frameworks like Next.js, I
-decided to take a wild turn: create my solution in Rust.
+I didn't want to get lost in the maze of popular frameworks like Next.js, so I chose to do something crazy: I wrote my solution in Rust.
 
-It's still convoluted, but I can lay out the implementation right here in this
-blog post. Can you say the same for Next.js?
+It's still slightly complex, but I can outline it right here in this blog article. Can you say the same for Next.js?
 
 <dialog
     character=raisehand
     pos=left
-    msg="Are you saying that you built your own version of Next.js?">
+    msg="Do you mean you created your own version of Next.js?">
 </dialog>
 <dialog
     character=bulb
     pos=right
     msg="
-        Not at all!
-        That would require an enormous amount of work and I only worked on this
-        in my spare time. I wanted to learn more about Rust and played with it
-        building something that I could actually use in real life: a webserver.
+        Absolutely not! That would need a tremendous amount of work, and I
+        simply worked on it in my spare time. I wanted to learn more about Rust
+        and experimented with it by creating something I could use in real
+        life: a webserver.
     ">
 </dialog>
 
-I think of this as the Rust equivalent of [T3 Stack](https://create.t3.gg/). I
-did not implement a framework, I took existing libraries and put some glue in
-between them.
+I consider this the Rust equivalent of [T3 Stack](https://create.t3.gg/). I did not create a framework; instead, I grabbed existing libraries and added some glue between them.
 
 ## The goal
 
-I know you're eager to dive in, so let me show you what it looks like.
+I know you're excited to dive in, so let me show you what it looks like.
 
-This very blog page is rendered by a "Rust Server Component":
+A "Rust Server Component" renders this blog page:
 
 <image avif="https://assets.anto.pt/articles/rsc/showcase.avif"
     webp="https://assets.anto.pt/articles/rsc/showcase.webp"
     png="https://assets.anto.pt/articles/rsc/showcase.png"></image>
 
-While the actual content of this article is written in Markdown, with a few
-custom components I defined:
+While the main text of this blog is written in Markdown, I have added a few unique components:
 
 <image avif="https://assets.anto.pt/articles/rsc/showcase_md.avif"
     webp="https://assets.anto.pt/articles/rsc/showcase_md.webp"
     png="https://assets.anto.pt/articles/rsc/showcase_md.png"></image>
 
-I'm pretty excited with the result I achieved, so let's go!
+I'm really pleased with the outcome, so let's go!
 
 
 ## Old school server-side rendering
 
-Remember the good old days when internet pages were just HTML files hitching a
-ride over the internet? Yeah, those days. Well, they're not over! We've just
-made it more intricate than a season finale of a soap opera. If you're a
-frontend newbie, you might be fooled into believing that Node, JavaScript,
-React, or similar tools are a necessity to build a website.
+Remember when internet pages were just HTML files that traveled through the internet? Those days, sure. Well, they're not over yet! We just made it more complicated than a soap show season end. If you're new to frontend development, you might be tricked into thinking that you need Node, JavaScript, React, or similar tools to build a website.
 
-Let's begin our adventure:
+Let us begin our journey:
 
 <image avif="https://assets.anto.pt/articles/rsc/exc1.avif" webp="https://assets.anto.pt/articles/rsc/exc1.webp" png="https://assets.anto.pt/articles/rsc/exc1.png" ></image>
 
@@ -78,8 +69,7 @@ async fn handler() -> impl IntoResponse {
 }
 ```
 
-Before building a simple website like a blog, the next natural step is playing
-a bit with `format!()` to avoid duplicated HTML:
+Before creating a basic website, such as a blog, the next natural thing to do is to experiment with 'format!()' to eliminate duplicated HTML:
 
 ```rust
 #[tokio::main]
@@ -110,8 +100,7 @@ async fn page2() -> impl IntoResponse {
 }
 ```
 
-I will be calling functions like `layout()` *components*. Because that's all
-they are if you think about it:
+I'll refer to methods like 'layout()' as *components*. Because, when you think about it, that's all they are:
 
 ```javascriptx
 // A JSX component
@@ -140,8 +129,7 @@ fn nuts(count: i64) -> String {
     character=raisehand
     pos=left
     msg="
-        Are you saying that &quot;Rust Server Components&quot; that baited
-        viewers here are just functions that return strings?
+Are you suggesting that the &quot;Rust Server Components&quot; that drew people in here are simply functions that return strings?
     ">
 </dialog>
 <dialog
@@ -153,16 +141,15 @@ fn nuts(count: i64) -> String {
     character=facepalm
     pos=left
     msg="
-        You gotta put some real content now or nobody will trust you ever
-        again.
+You need to put some meaningful content now or no one will ever trust you again.
     ">
 </dialog>
 
 ## Server components
-Next.js and React have been pushing for RSC (the real ones, React Server
-Components) lately.
-It's exactly what I did in the previous section, the JSX component is
-eventually rendered into a HTML string by the server.
+
+Recently, Nextjs and React have been pushing for RSC (the real ones, React Server Components).
+
+The server finally renders the JSX component into an HTML string, just as I did in the previous section.
 
 <dialog
     character=finger
@@ -174,18 +161,14 @@ eventually rendered into a HTML string by the server.
     ">
 </dialog>
 
-JSX provide a far better DX than `format!()`, but I've found
-[maud](https://maud.lambda.xyz/), a crate that is pure gold. (Thanks Xe Iaso's
-[site](https://xeiaso.net) [source code](https://github.com/xe/site) for making
-me discover maud). It's not as good as writing JSX but it's not bad either.
+JSX provides significantly superior DX than 'format!()', however I've discovered [maud](https://maud.lambda.xyz/), a pure gold crate. (I discovered maud thanks to Xe Iaso's [site](https://xeiaso.net) [source code](https://github.com/xe/site)).
+It's not as good as writing JSX, but it's still not terrible.
 
-The great thing is that you can't make mistakes like forgetting to close a
-`<p>` or your code won't even compile.
+The best part is that you can't make mistakes like forgetting to close a `<p>` otherwise your code will fail to build.
 
-Since we are adding a new dependency, I want to keep in mind the philosophy of
-this project: being able to understand what's going on at all times.
+Since we're introducing a new dependency, I'd want to remind you of the project's philosophy: understanding what's going on at all times.
 
-Maud is just a fancier `format!()` that looks like that:
+Maud is simply a nicer version of `format!()` that looks like this:
 
 ```rust
 // A Rust Server Component with maud
@@ -223,17 +206,14 @@ directly is easier for nesting Maud components.
     ">
 </dialog>
 
-The power of Maud is the ability to have control flows like if-s and loops
-directly inside your template. More features are documented in the [official
-website](https://maud.lambda.xyz/control-structures.html).
+The ability to have control flows like if-s and loops straight into your template is what makes Maud so powerful. More information is available on the [official website](https://maud.lambda.xyz/control-structures.html).
 
-One last thing about Maud: its `Render` trait.
+Last but not least, Maud's `Render` trait.
 
-By implementing `Render`, any type can customize the HTML it will produce when
-rendered by Maud. By default, the standard `Display` trait is used, but by
-implementing `Render` manually we can override the behaviour.
+By default, Maud will render components into HTML using the standard `Display` trait. Types can customize their output by implementing `Render`.
 
-This comes in handy for building our custom components:
+This is useful for creating our own components:
+
 ```rust
 struct Css(&'static str);
 
@@ -248,13 +228,11 @@ impl Render for Css {
 
 ## Markdown components
 
-We have learned how to define our custom components, so let's build another
-useful one: a markdown renderer.
+Now that we've learnt how to design custom components, let's create another useful one: a markdown renderer.
 
-For that, I will add a new crate to our tool belt:
-[comrak](https://docs.rs/comrak/latest/comrak/).
+For that, I will add a new crate to our tool belt: [comrak](https://docs.rs/comrak/latest/comrak/).
 
-Defining such a component it's trivial once you have comrak: 
+Once you have comrak, defining such a component is simple: 
 
 ```rust
 use comrak::{markdown_to_html, ComrakOptions};
@@ -272,7 +250,7 @@ impl Render for Markdown {
 }
 ```
 
-And now we can pull together a full webpage easily:
+And now we can easily put together a whole webpage:
 
 ```rust
 pub async fn page() -> Markup {
@@ -286,13 +264,14 @@ pub async fn page() -> Markup {
 }
 ```
 
-Check out this beautiful result, appreciating what we achieved so far:
+Check out this lovely outcome, which shows how far we've come:
 
 <image png="https://assets.anto.pt/articles/rsc/sample_page.png" webp="https://assets.anto.pt/articles/rsc/sample_page.webp" avif="https://assets.anto.pt/articles/rsc/sample_page.avif"></image>
 
+
 ## MD...X?
-MDX allows you to use JSX in your markdown content. I wanted something similar
-for this blog.
+
+MDX enables the usage of JSX in markdown documents. For my blog, I wanted something similar.
 
 <dialog
     character=raisehand
@@ -308,22 +287,18 @@ for this blog.
 &lt;dialog character=bulb pos=right msg=&quot;Bingo. Here is our source code: &lt;pre&gt;&lt;code&gt;stack overflow&lt;/code&gt;&lt;/pre&gt;&quot;&gt;&lt;/dialog&gt;</code></pre>">
 </dialog>
 
-To achieve that, I'm adding one more crate:
-[lol-html](https://crates.io/crates/lol-html). Built by CloudFlare to power
-their Workers:
+To achieve that, I've added a new crate: [lol-html](https://crates.io/crates/lol-html). CloudFlare developed this to power its Workers:
 
 > _**L**ow **O**utput **L**atency streaming **HTML** rewriter/parser with
 > CSS-selector based API._
 
-What lol-html really is, is a fancy search-and-replace for HTML.
+lol-html is essentially a clever search-and-replace for HTML.
 
-You can search by using CSS selectors, and replace by using a set of API they
-expose.
+You can search using CSS selectors and replace using the API that they offer.
 
 First, you set up a `rewriter`, then you feed it with your HTML stream.
 
-Let's see an example for rewriting all `<a href="http://..."` with a `https`
-version:
+Let's see an example of replacing all `<a href="http://..."` with a `https` version:
 
 ```rust
 let mut output = vec![];
@@ -363,8 +338,7 @@ assert_eq!(
 );
 ```
 
-We can build a generalized version that wraps a component applying the provided
-Settings:
+We can create a more generic version of the above that accepts a component and applies the specified Settings:
 
 ```rust
 use maud::{Markup, PreEscaped};
@@ -378,8 +352,8 @@ pub fn apply_rewriter<'s, 'h>(settings: Settings<'s, 'h>, html: Markup) -> Marku
 }
 ```
 
-And use it to enhance out Markdown component by wrapping it and calling
-`apply_rewriter()` after the markdown content has been rendered:
+Let's build a `EnhancedMd` component that wraps a `Markdown` component and calls `apply_rewriter()` to its output:
+
 ```rust
 
 pub struct EnhancedMd(pub Markdown);
@@ -429,8 +403,7 @@ impl ComponentReplacer for Element<'_, '_> {
 }
 ```
 
-I hope I didn't lose you into implementation details, the usage is much
-cleaner:
+I hope I didn't bore you with implementation details; the usage is much more straightforward:
 
 ```rust
 pub async fn page() -> Markup {
@@ -454,23 +427,19 @@ pub async fn page() -> Markup {
     character=finger
     msg="
 Unfortunately due to the streaming-oriented nature of lol-html, I was
-not able to use it to replace components' inner content. You can build a
-component like that: `<alert msg=foo></alert>`; but not `<alert>foo</alert>`.
+unable to utilize it to replace components' inner content. You may create a
+component that looks like this: `<alert msg=foo></alert>`;
+but not `<alert>foo</alert>`.
     ">
 </dialog>
 
 ## Going interactive
 
-It's all good and easy to write some static-ish content. The most dynamic thing
-you can do now is to load your markdown content from a file or from a database.
+It's fine and simple to create some static-ish content. Loading your markdown content from a file or a database is the most dynamic thing you can do currently.
 
-What about some real interactivity for your users though? For my website I
-wanted that `<3` button you can see in the top-right corner!
-(BTW, if you're enjoying this article, this could be the perfect moment to
-click it! A login is required though.)
+But how about some real interactivity for your users? I wanted to build the `<3` button in the top-right corner for my website! (By the way, if you're enjoying this post, now may be a good time to click it! However, a login is necessary.)
 
-I'm going to start by building a skeleton of something interactive. Like most
-frameworks do as a demo, here's a little counter:
+I'm going to start by creating the structure for an interactive page. Here's a counter, like most frameworks do as a demo:
 
 ```rust
 use maud::{html, Markup};
@@ -502,16 +471,11 @@ pub async fn page() -> Markup {
 
 Clicking the button doesn't do anything, yet.
 
-We'll be using a JavaScript library that recently gained a lot of popularity:
-[htmx](https://htmx.org/). With htmx, we'll make our component interactive by
-writing the correct amount of JavaScript: zero.
+We'll be using the [htmx](https://htmx.org/) JavaScript library, which has lately received a lot of popularity. And we'll make our component interactive by writing the proper amount of JavaScript: zero.
 
-The idea is that when the user clicks on the button, it will fire a `POST
-/components/counter/increment` request to our server, that will update the
-counter in its global state and reply with the updated HTML of that component.
+When the user hits the button, it'll send a `POST /components/counter/increment` request to our server, which updates the counter in its global state and returns the modified HTML for the updated counter.
 
-Let's register a new `counter_increment()` route handler in our Axum's router.
-For the response, we can reuse the function `counter()` we defined earlier.
+Let's register a new `counter_increment()` route handler in our Axum's router. For the response, we can reuse the function `counter()` we defined earlier.
 
 ```rust
 // register new routes specific to this component to the axum router
@@ -557,8 +521,7 @@ $ curl -XPOST http://localhost:3000/components/counter/increment
 <div><p>Counter: 2</p><button>Increment</button></div>
 ```
 
-Sweet. Now to add interactivity, let's add the "on click" event that will fire
-the same HTTP request and swap its content with the response:
+Sweet. To make it interactive, let's add a "on click" event that sends the same HTTP request and swaps its content with the response:
 
 ```rust
 pub fn counter() -> Markup {
@@ -596,37 +559,25 @@ And just like that, it works:
 
 <image png="https://assets.anto.pt/articles/rsc/sample_page_counter_working.png" webp="https://assets.anto.pt/articles/rsc/sample_page_counter_working.webp" avif="https://assets.anto.pt/articles/rsc/sample_page_counter_working.avif"></image>
 
-This is not an htmx tutorial, I just wanted to showcase how convenient can be
-to share the same function `counter()` both as a "regular page" that as an
-endpoint for htmx.
+This is not an htmx lesson. I just wanted to show the benefit of using the same code (`counter()`) on both a "regular page" and an htmx endpoint.
 
 We also set the ground for where I'm going next, suspense...
 
 ## Building `<Suspense />`
 
-I could stop right there and I'd be already satisfied with the things I learned
-about Rust, Axum, and all the libraries I used. It was so refreshing to things
-differently that I didn't want to stop though.
+I could have stopped there and been happy with what I had learned about Rust, Axum, and all the tools I used. However, I liked seeing things in a different way so much that I didn't want to stop.
 
-React provides a component called `<Suspense />`, which is typically used for
-showing a fallback component (e.g. a loading state) while the real component is
-still rendering on the server.
+The `Suspense` component in React is usually used to show a fallback component (like a waiting state) while the real component is still being rendered on the server.
 
-In my blog, I didn't want to block the entire page rendering while waiting for
-the database query that returns the number of `<3`. It's not something that I
-care about for the SEO anyway so it can safely be deferred for later.
+In my blog, I didn't want to wait for the database query that gives the number of likes to stop the whole page from loading. It doesn't matter to me for SEO anyway, so it can wait until later.
 
-Think of our previous `counter()` component, imagine if fetching that number
-from a 3rd party service takes 500ms. We should let the client fetch the
-`counter()` component lazily, after the important content.
+Consider our earlier `counter()` component; imagine retrieving that number from a third-party service taking 500ms. After the crucial content, we should let the client fetch the `counter()` component lazily.
 
 <image avif="https://assets.anto.pt/articles/rsc/exc2.avif"
     webp="https://assets.anto.pt/articles/rsc/exc2.webp"
     png="https://assets.anto.pt/articles/rsc/exc2.png"></image>
 
-We can leverage htmx, and it's a lot easier than you might think. First I'm
-going to register a new `GET /components/counter` route that will just return
-the counter component:
+We can use htmx, and it's much simpler than you may imagine. First, I'll create a new `GET /components/counter` route that just returns the counter component:
 
 ```rust
 pub fn register(router: Router) -> Router {
@@ -642,8 +593,7 @@ pub async fn counter_get() -> Markup {
 
 ```
 
-And since we don't want to render `counter()` anymore, let's replace it with a
-placeholder div that will trigger the GET request as soon as the page is ready:
+And, because we don't want to render `counter()` any longer, let's replace it with a placeholder div that will trigger the `GET` request as soon as the page is ready:
 
 ```rust
 pub async fn page() -> Markup {
@@ -658,11 +608,9 @@ pub async fn page() -> Markup {
 }
 ```
 
-At this point you can try adding a `sleep()` inside the `counter()` function
-and you'll see that the rest of the page (i.e. the title and the loading text)
-will render straight away and won't be blocked by your sleep.
+At this point, you may try inserting a `sleep()` function within  `counter()` to check whether the remainder of the page (i.e. the title and loading text) would render immediately without being slowed down by your sleep.
 
-To keep things clean and nice, write your own `suspense()` component!
+Write your own `suspense()` component to keep things tidy!
 
 ```rust
 pub fn suspense(route: &str, placeholder: Markup) -> Markup {
@@ -677,20 +625,13 @@ pub fn suspense(route: &str, placeholder: Markup) -> Markup {
 
 ## Future work
 
-I didn't want to go too deep into implementation details. I wanted to focus on
-my idea, my proof of concept.
+I didn't want to get too deep into implementation specifics in this article. I wanted to share with you on my "build your own thing" philosophy.
 
-My personal website is now built this way and its source code is available at:
-https://github.com/Pitasi/univrs.
+My own website is now developed in this manner, and the source code is available at: https://github.com/Pitasi/univrs.
 
-I'm not releasing this as a "library" or "framework". If enough people are
-interested, we can build boilerplates repositories or components as a starting
-point. It's important to me that anything I used can be swapped easily.
+I'm not distributing it as a "library" or "framework". If there is significant interest, I can provide boilerplate repositories or components as a starting point. It's critical to me that any piece being used it easily interchangeable.
 
-The nicest thing about this approach, was the freedom to write any kind of
-logic I wanted. To end with an example, here's how I'm
-automatically selecting the best possible image format to serve (e.g. AVIF,
-WEBP, JPG, ...) based on the files available in the folder:
+Being able to develop any sort of logic I wanted was the best part about this approach. As a final point, here's how I automatically select the best image format to serve (e.g., AVIF, WEBP, JPG,...) depending on what's contained in its folder:
 
 ```rust
 // path is something like "dir/picture.jpg"
@@ -728,12 +669,9 @@ pub fn static_img(path: &str, alt: &str, class: &str) -> Markup {
 
 ---
 
-If you enjoyed this article you can find me on Mastodon:
-[@zaphodias@hachyderm.io](https://hachyderm.io/@zaphodias) or
-[LinkedIn](https://linkedin.com/in/pitasi).
+If you enjoyed this article you can find me on Mastodon: [@zaphodias@hachyderm.io](https://hachyderm.io/@zaphodias) or [LinkedIn](https://linkedin.com/in/pitasi).
 
-I hardly take anything personally and appreciate any constructive critique that
-makes me learn something new!
+I never take things personally and value any constructive criticism that helps me learn something new!
 
 Cheers 🖖
 
