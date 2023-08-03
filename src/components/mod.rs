@@ -83,7 +83,7 @@ pub fn root(uri: &http::Uri, meta: Meta, slot: Markup, user: Option<User>) -> Ma
             head {
                 (meta)
                 (favicon())
-                (CssFile::from("style.css"))
+                (CssFile::from("style.dist.css"))
                 (CssFile::from("tailwind.css"))
                 script defer data-domain="anto.pt" src="https://plausible.anto.pt/js/plausible.js" {}
                 link rel="preload" href="/static/Inter-VariableFont_slnt,wght.ttf" crossorigin="anonymous" as="font" type="font/ttf";
