@@ -4,7 +4,12 @@ use axum::http;
 use data_encoding::HEXLOWER;
 use maud::{html, Markup, PreEscaped, Render};
 
-use crate::{hash, icons, images, pages::auth::User};
+use crate::{
+    hash, icons, images,
+    pages::auth::User,
+    sstyle::{apply_styles, StyledDiv, StyledLi},
+    style,
+};
 
 #[derive(Default, Debug)]
 pub struct Meta<'a> {
@@ -88,6 +93,7 @@ pub fn root(uri: &http::Uri, meta: Meta, slot: Markup, user: Option<User>) -> Ma
                 script defer data-domain="anto.pt" src="https://plausible.anto.pt/js/plausible.js" {}
                 link rel="preload" href="/static/Inter-VariableFont_slnt,wght.ttf" crossorigin="anonymous" as="font" type="font/ttf";
                 link rel="preload" href="/static/DarkerGrotesque-VariableFont_wght.ttf" crossorigin="anonymous" as="font" type="font/ttf";
+                style placeholder {}
             }
             body class="flex min-h-screen" hx-ext="loading-states" {
               script src="/static/anime.min.js" {}
@@ -102,7 +108,7 @@ pub fn root(uri: &http::Uri, meta: Meta, slot: Markup, user: Option<User>) -> Ma
         }
     };
 
-    res
+    apply_styles(res)
 }
 
 pub fn mobile_navbar(uri: &http::Uri, user: Option<User>) -> Markup {
@@ -215,26 +221,70 @@ pub fn sidebar_nav(slot: Markup) -> Markup {
     }
 }
 
-pub fn sidebar_nav_item(href: &str, icon: &Option<Markup>, slot: Markup, active: bool) -> Markup {
-    html! {
-        li {
-            a href=(href) class="
-                rounded-md text-sm font-medium transition-colors focus:outline-none
-                focus:ring-offset0 disabled:opacity-50 disabled:pointer-events-none
-                data-[state=open]:bg-slate-100 py-2 px-4 flex h-auto w-full flex-row items-center
-                justify-start ring-inset ring-lightviolet ring-offset-transparent focus:ring-1
-                data-active:translate-x-0 data-active:translate-y-0 data-active:border-black
-                data-active:bg-yellow data-active:shadow-none -translate-x-0.5 -translate-y-0.5
-                border-2 border-black bg-white shadow-neu-2 hover:translate-x-0 hover:translate-y-0
-                hover:shadow-none
-            " data-active=(active) {
+pub fn sidebar_nav_item(
+    href: &str,
+    icon: &Option<Markup>,
+    slot: Markup,
+    active: bool,
+) -> impl Render {
+    StyledLi(
+        style! {
+r#"
+        a {
+            display: flex; 
+            flex-direction: row; 
+            justify-content: flex-start; 
+            align-items: center; 
+
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem; 
+            padding-left: 1rem;
+            padding-right: 1rem; 
+
+            border-radius: 0.375rem; 
+            border-width: 2px; 
+            border-color: #000000; 
+
+            --tw-translate-x: -0.125rem;
+            --tw-translate-y: -0.125rem;
+            transform: translate(var(--tw-translate-x), var(--tw-translate-y));
+
+            width: 100%; 
+            height: auto; 
+
+            font-size: 0.875rem;
+            line-height: 1.25rem; 
+            font-weight: 500; 
+
+            background-color: #ffffff; 
+
+            --tw-shadow: 1px 1px 0px black,2px 2px 0px black;
+            box-shadow: var(--tw-shadow);
+        }
+
+        a:hover {
+            --tw-shadow: none;
+            --tw-translate-x: 0;
+            --tw-translate-y: 0;
+        }
+
+        a[data-active="true"] {
+            --tw-translate-x: 0;
+            --tw-translate-y: 0;
+            background-color: var(--yellow); 
+            box-shadow: none;
+        }
+"#r
+        },
+        html! {
+            a href=(href) data-active=(active) {
                 @if let Some(icon) = icon {
                     span class="mr-2 h-4 w-4" { (icon) }
                 }
                 (slot)
             }
-        }
-    }
+        },
+    )
 }
 
 pub fn login_widget(user: Option<User>) -> Markup {
