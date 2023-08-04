@@ -6,6 +6,7 @@ pub mod images;
 pub mod markdown;
 pub mod pages;
 pub mod rsc;
+pub mod sstyle;
 pub mod xmarkdown;
 
 use axum::{
