@@ -7,7 +7,7 @@ use maud::{html, Markup, PreEscaped, Render};
 use crate::{
     hash, icons, images,
     pages::auth::User,
-    sstyle::{apply_styles, StyledDiv, StyledLi},
+    sstyle::{apply_styles, StyledLi},
     style,
 };
 
@@ -15,6 +15,7 @@ use crate::{
 pub struct Meta<'a> {
     pub title: Option<&'a str>,
     pub description: Option<&'a str>,
+    pub social_image: Option<&'a str>,
 }
 
 impl<'a> Render for Meta<'a> {
@@ -33,6 +34,13 @@ impl<'a> Render for Meta<'a> {
             meta charset="utf-8";
             meta name="viewport" content="width=device-width, initial-scale=1";
             meta name="description" content=(description);
+            @if let Some(social_image) = self.social_image {
+                meta property="og:image" content=(social_image);
+                meta property="og:image:width" content="1200";
+                meta property="og:image:height" content="600";
+                meta name="twitter:card" content="summary_large_image";
+                meta name="twitter:image:src" content=(social_image);
+            }
         }
     }
 }

@@ -6,6 +6,7 @@ pub mod images;
 pub mod markdown;
 pub mod pages;
 pub mod rsc;
+pub mod social_img;
 pub mod sstyle;
 pub mod xmarkdown;
 
@@ -124,7 +125,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route("/auth/logout", get(pages::auth::logout_handler))
         .route("/", get(pages::homepage::handler))
         .route("/articles", get(pages::articles::page_articles))
-        .route("/articles/:slug", get(pages::articles::page_article));
+        .route("/articles/:slug", get(pages::articles::page_article))
+        .route(
+            "/articles/:slug/social-image.png",
+            get(social_img::social_image_article),
+        );
 
     let components = Router::new()
         .route("/like-btn", get(page_get_like_btn))

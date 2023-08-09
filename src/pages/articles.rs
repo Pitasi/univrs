@@ -32,12 +32,16 @@ pub async fn page_article(
     uri: http::Uri,
     Path(slug): Path<String>,
 ) -> Markup {
-    let a = articles_repo.get_article_by_slug(slug).unwrap().clone();
+    let a = articles_repo.get_article_by_slug(&slug).unwrap().clone();
 
     root(
         &uri,
         Meta {
             title: Some(&a.title),
+            social_image: Some(&format!(
+                "https://anto.pt/articles/{}/social-image.png",
+                a.slug
+            )),
             ..Default::default()
         },
         articles(

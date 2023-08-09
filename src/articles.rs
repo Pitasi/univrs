@@ -43,7 +43,7 @@ impl<'a> ArticlesRepo {
         self.articles.iter().filter(|a| !a.unlisted).collect()
     }
 
-    pub fn get_article_by_slug(&self, slug: String) -> Option<&Article> {
+    pub fn get_article_by_slug(&self, slug: &str) -> Option<&Article> {
         self.articles.iter().find(|p| p.slug == slug)
     }
 }
