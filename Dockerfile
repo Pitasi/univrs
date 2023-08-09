@@ -16,6 +16,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry cargo build --release
 
 COPY ./src /app/src
 COPY ./migrations /app/migrations
+COPY ./static/ /app/static/
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry <<EOF
   set -e
