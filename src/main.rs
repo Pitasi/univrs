@@ -3,33 +3,29 @@ pub mod components;
 pub mod hash;
 pub mod icons;
 pub mod images;
+pub mod leptos;
 pub mod markdown;
 pub mod pages;
 pub mod rsc;
 pub mod social_img;
-pub mod sstyle;
-pub mod xmarkdown;
 
 use axum::{
-    extract::Query,
-    http::{self, HeaderMap, Request},
+    http::Request,
     middleware::{self, Next},
-    response::{IntoResponse, Response},
+    response::Response,
     routing::{get, post},
-    Extension, Form, Router,
+    Extension, Router,
 };
 use axum_login::{
     axum_sessions::{async_session::MemoryStore as SessionMemoryStore, SameSite, SessionLayer},
     AuthLayer, PostgresStore,
 };
-use maud::{html, Markup, PreEscaped};
 use oauth2::{
     basic::BasicClient, AuthType, AuthUrl, ClientId, ClientSecret, RedirectUrl, TokenUrl,
 };
 use pages::auth::{AuthContext, User};
 use rand::Rng;
-use serde::{Deserialize, Serialize};
-use sqlx::{postgres::PgPoolOptions, PgPool};
+use sqlx::postgres::PgPoolOptions;
 use std::{
     env,
     error::Error,
@@ -60,7 +56,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .init();
 
     // auth
-    let secret = rand::thread_rng().gen::<[u8; 64]>();
+    let secret = env::var("AUTH_SECRET")
+        .map(|s| s.into_bytes())
+        .unwrap_or_else(|_| rand::thread_rng().gen::<[u8; 64]>().to_vec());
 
     let session_store = SessionMemoryStore::new();
     let session_layer = SessionLayer::new(session_store, &secret)
@@ -132,8 +130,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         );
 
     let components = Router::new()
-        .route("/like-btn", get(page_get_like_btn))
-        .route("/like-btn", post(page_post_like_btn));
+        .route("/like-btn", get(components::heart::handler_get))
+        .route("/like-btn", post(components::heart::handler_post));
 
     let router = Router::new().nest("/", app).nest("/components", components);
 
@@ -167,175 +165,4 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .await?;
 
     Ok(())
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct LikeBtnPayload {
-    pub url: String,
-}
-
-fn lazy_component(component_path: &str) -> Markup {
-    // todo: generalize this into suspense()
-    html! {
-        button
-            class="inline-flex items-center justify-center text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset0 disabled:opacity-50 disabled:pointer-events-none bg-transparent hover:bg-slate-100 data-[state=open]:bg-transparent h-9 px-2 rounded-md"
-            hx-get=(component_path)
-            hx-payload="{}"
-            hx-trigger="load"
-            hx-target="this"
-            hx-swap="outerHTML" {
-                div class="flex flex-row items-center justify-center gap-2 font-neu text-3xl font-bold" {
-                    (icons::heart(false))
-                    span { "..." }
-                }
-        }
-    }
-}
-
-async fn like_btn(pool: PgPool, user: Option<User>, url: &str, act: bool) -> Markup {
-    let mut conn = pool.acquire().await.unwrap();
-    let mut has_like = match &user {
-        Some(u) => sqlx::query_as::<_, Like>(
-            r#"
-            select * from likes
-            where user_id = $1
-            and url = $2
-        "#,
-        )
-        .bind(u.id)
-        .bind(url)
-        .fetch_one(&mut conn)
-        .await
-        .is_ok(),
-        None => false,
-    };
-
-    if act && user.is_some() {
-        let u = user.unwrap();
-        if has_like {
-            sqlx::query(
-                r#"
-                    delete from likes
-                    where user_id = $1
-                    and url = $2
-                "#,
-            )
-            .bind(u.id)
-            .bind(url)
-            .execute(&mut conn)
-            .await
-            .unwrap();
-            has_like = false;
-        } else {
-            sqlx::query(
-                r#"
-                    insert into likes (user_id, url)
-                    values ($1, $2)
-                "#,
-            )
-            .bind(u.id)
-            .bind(url)
-            .execute(&mut conn)
-            .await
-            .unwrap();
-            has_like = true;
-        }
-    }
-
-    let count: i64 = sqlx::query_scalar(
-        r#"
-            select count(*) from likes
-            where url = $1
-        "#,
-    )
-    .bind(url)
-    .fetch_one(&pool)
-    .await
-    .unwrap();
-
-    let payload = serde_json::to_string(&LikeBtnPayload {
-        url: url.to_string(),
-    })
-    .unwrap();
-
-    html! {
-        button
-            class="inline-flex items-center justify-center text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset0 disabled:opacity-50 disabled:pointer-events-none bg-transparent hover:bg-slate-100 data-[state=open]:bg-transparent h-9 px-2 rounded-md"
-            hx-post="/components/like-btn"
-            hx-trigger="click"
-            hx-target="this"
-            hx-swap="outerHTML"
-            hx-vals=(payload)
-            data-loading-disable {
-                div class="flex flex-row items-center justify-center gap-2 font-neu text-3xl font-bold" {
-                    (icons::heart(has_like))
-                    span { (count.to_string()) }
-                }
-        }
-    }
-}
-
-fn header(uri: &http::Uri, title: &str) -> Markup {
-    html! {
-    header class="sticky top-0 z-10 flex w-full items-center justify-between gap-2
-        overflow-hidden border-b-2 border-black bg-yellow px-3 py-3 lg:justify-end lg:gap-4" {
-        span
-            id="header-title"
-            class="line-clamp-1 text-ellipsis font-bold"
-            style="opacity: 0; transform: translateY(30px) translateZ(0px);" {
-            (title)
-        }
-        (lazy_component(&("/components/like-btn?url=".to_string() + uri.path())))
-    }
-    script {(PreEscaped(r#"
-var animation = anime({
-  targets: '#header-title',
-  translateY: 0,
-  opacity: 1,
-  easing: 'easeInOutSine',
-  autoplay: false
-});
-
-window.addEventListener("scroll", () => {
-    const scrollPercent = Math.min(window.scrollY, 200) / 200;
-    animation.seek(scrollPercent * animation.duration);
-}, false);
-    "#))}
-    }
-}
-
-#[derive(Debug, sqlx::FromRow)]
-pub struct Like {
-    pub id: i64,
-    pub user_id: i64,
-    pub url: String,
-}
-
-#[derive(Deserialize)]
-struct PageLikeBtnQuery {
-    url: String,
-}
-
-async fn page_get_like_btn(
-    auth: AuthContext,
-    Extension(pool): Extension<PgPool>,
-    query: Query<PageLikeBtnQuery>,
-) -> impl IntoResponse {
-    like_btn(pool, auth.current_user, &query.url, false).await
-}
-
-async fn page_post_like_btn(
-    auth: AuthContext,
-    Extension(pool): Extension<PgPool>,
-    Form(payload): Form<LikeBtnPayload>,
-) -> impl IntoResponse {
-    let mut header_map = HeaderMap::new();
-    if auth.current_user.is_none() {
-        header_map.insert("HX-Redirect", "/auth/login".parse().unwrap());
-    }
-
-    (
-        header_map,
-        like_btn(pool, auth.current_user, &payload.url, true).await,
-    )
 }

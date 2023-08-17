@@ -1,4 +1,4 @@
-use maud::{html, Markup};
+use leptos::{component, view, IntoAttribute, IntoView, Scope};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -69,21 +69,32 @@ fn search_available_sources(file_path: &str) -> Vec<ImageSrc> {
     sources
 }
 
-pub fn static_img(path: &str, alt: &str, class: &str) -> Markup {
-    let sources = search_available_sources(path);
+#[component]
+pub fn StaticImg(
+    cx: Scope,
+    #[prop(into)] path: String,
+    #[prop(into)] alt: String,
+    #[prop(into)] class: String,
+) -> impl IntoView {
+    let sources = search_available_sources(&path);
     if sources.is_empty() {
         panic!("couldn't find any image source for {}", path);
     }
 
     let (fallback, sources) = sources.split_last().unwrap();
 
-    html! {
-        picture class="contents" {
-            @for source in sources {
-                source srcset=(format!("/{}", source.path())) type=(source.mime_type());
-            }
-            img src=(format!("/{}", fallback.path())) class=(class) alt=(alt) loading="lazy" decoding="async";
-        }
+    view! {
+        cx,
+        <picture class="contents">
+            {sources.into_iter()
+                .map(|source| view! {
+                    cx,
+                    <source srcset=format!("/{}", source.path()) type_=source.mime_type() />
+                })
+                .collect::<Vec<_>>()}
+
+            <img src=format!("/{}", fallback.path()) class={class} alt=alt loading="lazy" decoding="async" />
+        </picture>
     }
 }
 
@@ -120,18 +131,25 @@ impl Into<Vec<ImageSrc>> for Srcset {
     }
 }
 
-pub fn remote_img(srcset: Srcset, alt: &str, class: &str) -> Markup {
+#[component]
+pub fn RemoteImg(cx: Scope, srcset: Srcset, alt: String, class: String) -> impl IntoView {
     let sources: Vec<ImageSrc> = srcset.into();
     if sources.is_empty() {
         panic!("there must be at least one source");
     }
     let (fallback, sources) = sources.split_last().unwrap();
-    html! {
-        picture class="contents" {
-            @for source in sources {
-                source srcset=(source.path()) type=(source.mime_type());
-            }
-            img src=(fallback.path()) class=(class) alt=(alt) loading="lazy" decoding="async";
-        }
+    let fallback_path = fallback.path().to_string();
+
+    view! { cx,
+        <picture class="contents">
+            {sources.into_iter()
+                .map(|source| view! {
+                    cx,
+                    <source srcset=source.path().to_owned() type_=source.mime_type() />
+                })
+                .collect::<Vec<_>>()}
+
+            <img src=fallback_path class=class alt=alt loading="lazy" decoding="async" />
+        </picture>
     }
 }

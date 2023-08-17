@@ -1,13 +1,13 @@
 use chrono::{DateTime, FixedOffset};
 
-use crate::{markdown::load_dir, xmarkdown::EnhancedMd};
+use crate::{markdown, markdown::load_dir};
 
 #[derive(Clone, Debug)]
 pub struct Article {
     pub title: String,
     pub datetime: DateTime<FixedOffset>,
     pub slug: String,
-    pub content: EnhancedMd,
+    pub content: String,
     pub unlisted: bool,
 }
 
@@ -29,7 +29,7 @@ impl<'a> ArticlesRepo {
                     title,
                     datetime,
                     slug: md.name.clone(),
-                    content: md.content,
+                    content: markdown::parse_with_custom_components(&md.content),
                     unlisted,
                 }
             })
