@@ -76,8 +76,7 @@ fn _social_image_article(articles_repo: Extension<ArticlesRepo>, slug: &str) -> 
     let body_font = Font::try_from_vec(body_font).unwrap();
 
     let font_size = 80.0;
-    let mut text = a.title.as_str();
-    let (lines, line_height) = split_lines(font_size, &title_font, &mut text, (WIDTH as i32) - 200);
+    let (lines, line_height) = split_lines(font_size, &title_font, &a.title, (WIDTH as i32) - 200);
 
     lines.iter().enumerate().for_each(|(i, line)| {
         draw_text_mut(
@@ -90,7 +89,7 @@ fn _social_image_article(articles_repo: Extension<ArticlesRepo>, slug: &str) -> 
                 y: font_size,
             },
             &title_font,
-            &line,
+            line,
         );
     });
 
@@ -172,13 +171,13 @@ fn split_lines(font_size: f32, font: &Font, txt: &str, max_width: i32) -> (Vec<S
                 y: font_size,
             },
             font,
-            &format!("{}{}", line, word),
+            &format!("{line}{word}"),
         );
         if w <= max_width {
-            line.push_str(&format!("{} ", word));
+            line.push_str(&format!("{word} "));
         } else {
             lines.push(line);
-            line = format!("{} ", word);
+            line = format!("{word} ");
         }
     }
 

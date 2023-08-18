@@ -87,36 +87,21 @@ pub async fn page_article(
 #[component]
 fn ArticleContent(cx: Scope, a: Article) -> impl IntoView {
     view! { cx,
-    //                 main class="typography relative min-h-full bg-floralwhite pb-24 lg:pb-0" {
-    //                     (header(&uri, &a.title))
-    //                     article class="w-full bg-floralwhite p-8" {
-    //                       div class="mx-auto max-w-2xl" {
-    //                         div class="flex flex-col gap-3" {
-    //                             h1 class="font-neu text-bold text-darkviolet" { (a.title) }
-    //                             div class="flex flex-row" {
-    //                                 span class="text-gray-500" { "Written on " (a.datetime.format("%B %d, %Y")) "." }
-    //                             }
-    //                         }
-    //
-    //                         (a.content)
-    //                       }
-    //                     }
-    //                 }
-            <main class="typography relative min-h-full bg-floralwhite pb-24 lg:pb-0">
-                <Header title=a.title.clone() />
-                <article class="w-full bg-floralwhite p-8">
-                    <div class="mx-auto max-w-2xl">
-                        <div class="flex flex-col gap-3">
-                            <h1 class="font-neu text-bold text-darkviolet">{a.title}</h1>
-                            <div class="flex flex-row">
-                                <span class="text-gray-500">Written on {a.datetime.format("%B %d, %Y").to_string()}.</span>
-                            </div>
+        <main class="typography relative min-h-full bg-floralwhite pb-24 lg:pb-0">
+            <Header title=a.title.clone() />
+            <article class="w-full bg-floralwhite p-8">
+                <div class="mx-auto max-w-2xl">
+                    <div class="flex flex-col gap-3">
+                        <h1 class="font-neu text-bold text-darkviolet">{a.title}</h1>
+                        <div class="flex flex-row">
+                            <span class="text-gray-500">Written on {a.datetime.format("%B %d, %Y").to_string()}.</span>
                         </div>
-                        <div class="mt-4" inner_html=a.content />
                     </div>
-                </article>
-            </main>
-        }
+                    <div class="mt-4" inner_html=a.content />
+                </div>
+            </article>
+        </main>
+    }
 }
 
 #[component]

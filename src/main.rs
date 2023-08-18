@@ -1,3 +1,5 @@
+#![warn(clippy::pedantic)]
+
 pub mod articles;
 pub mod components;
 pub mod hash;
@@ -47,6 +49,34 @@ fn not_htmx<Body>(req: &Request<Body>) -> bool {
     !req.headers().contains_key("hx-request")
 }
 
+async fn set_cache_headers<B>(req: Request<B>, next: Next<B>) -> Response {
+    let mut res = next.run(req).await;
+    res.headers_mut()
+        .insert("cache-control", "public,max-age=604800".parse().unwrap());
+    res
+}
+
+fn build_oauth_client() -> BasicClient {
+    let client_id = env::var("CLIENT_ID").expect("Missing CLIENT_ID!");
+    let client_secret = env::var("CLIENT_SECRET").expect("Missing CLIENT_SECRET!");
+    let redirect_url = env::var("CALLBACK_URL").expect("Missing CALLBACK_URL!");
+    let auth_url_str = env::var("OAUTH_AUTH_URL").expect("Missing OAUTH_AUTH_URL!");
+    let token_url_str = env::var("OAUTH_TOKEN_URL").expect("Missing OAUTH_TOKEN_URL!");
+
+    let auth_url =
+        AuthUrl::new(auth_url_str.to_string()).expect("Invalid authorization endpoint URL");
+    let token_url = TokenUrl::new(token_url_str.to_string()).expect("Invalid token endpoint URL");
+
+    BasicClient::new(
+        ClientId::new(client_id),
+        Some(ClientSecret::new(client_secret)),
+        auth_url,
+        Some(token_url),
+    )
+    .set_redirect_uri(RedirectUrl::new(redirect_url).unwrap())
+    .set_auth_type(AuthType::RequestBody)
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     // tracing
@@ -56,9 +86,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .init();
 
     // auth
-    let secret = env::var("AUTH_SECRET")
-        .map(|s| s.into_bytes())
-        .unwrap_or_else(|_| rand::thread_rng().gen::<[u8; 64]>().to_vec());
+    let secret = env::var("AUTH_SECRET").map_or_else(
+        |_| rand::thread_rng().gen::<[u8; 64]>().to_vec(),
+        String::into_bytes,
+    );
 
     let session_store = SessionMemoryStore::new();
     let session_layer = SessionLayer::new(session_store, &secret)
@@ -81,35 +112,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let files = ServeDir::new("static")
         .precompressed_br()
         .precompressed_gzip();
-
-    async fn set_cache_headers<B>(req: Request<B>, next: Next<B>) -> Response {
-        let mut res = next.run(req).await;
-        res.headers_mut()
-            .insert("cache-control", "public,max-age=604800".parse().unwrap());
-        res
-    }
-
-    fn build_oauth_client() -> BasicClient {
-        let client_id = env::var("CLIENT_ID").expect("Missing CLIENT_ID!");
-        let client_secret = env::var("CLIENT_SECRET").expect("Missing CLIENT_SECRET!");
-        let redirect_url = env::var("CALLBACK_URL").expect("Missing CALLBACK_URL!");
-        let auth_url_str = env::var("OAUTH_AUTH_URL").expect("Missing OAUTH_AUTH_URL!");
-        let token_url_str = env::var("OAUTH_TOKEN_URL").expect("Missing OAUTH_TOKEN_URL!");
-
-        let auth_url =
-            AuthUrl::new(auth_url_str.to_string()).expect("Invalid authorization endpoint URL");
-        let token_url =
-            TokenUrl::new(token_url_str.to_string()).expect("Invalid token endpoint URL");
-
-        BasicClient::new(
-            ClientId::new(client_id),
-            Some(ClientSecret::new(client_secret)),
-            auth_url,
-            Some(token_url),
-        )
-        .set_redirect_uri(RedirectUrl::new(redirect_url).unwrap())
-        .set_auth_type(AuthType::RequestBody)
-    }
 
     let oauth_client = build_oauth_client();
 

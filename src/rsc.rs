@@ -28,8 +28,8 @@ pub fn render(html: &str) -> String {
                         jpeg,
                         svg,
                     };
-                    let alt = el.get_attribute("alt").unwrap_or("".to_string());
-                    let class = el.get_attribute("class").unwrap_or("".to_string());
+                    let alt = el.get_attribute("alt").unwrap_or(String::new());
+                    let class = el.get_attribute("class").unwrap_or(String::new());
 
                     let comp = leptos::ssr::render_to_string(move |cx| {
                         leptos::view! {cx, <RemoteImg srcset alt class /> }
