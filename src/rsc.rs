@@ -2,6 +2,7 @@ use crate::components::md::Dialog;
 use crate::images::{self, RemoteImg};
 use lol_html::html_content::ContentType;
 use lol_html::{element, HtmlRewriter, Settings};
+use sycamore::prelude::*;
 
 pub fn apply<'s, 'h>(settings: Settings<'s, 'h>, html: &str) -> String {
     let mut output = vec![];
@@ -31,8 +32,8 @@ pub fn render(html: &str) -> String {
                     let alt = el.get_attribute("alt").unwrap_or(String::new());
                     let class = el.get_attribute("class").unwrap_or(String::new());
 
-                    let comp = leptos::ssr::render_to_string(move |cx| {
-                        leptos::view! {cx, <RemoteImg srcset alt class /> }
+                    let comp = sycamore::render_to_string(|cx| {
+                        view! {cx, RemoteImg(srcset=srcset, alt=alt, class=class) }
                     });
                     el.replace(&comp, ContentType::Html);
 
@@ -53,8 +54,8 @@ pub fn render(html: &str) -> String {
 
                     let parse = el.get_attribute("parse").unwrap_or("html".to_string());
 
-                    let comp = leptos::ssr::render_to_string(move |cx| {
-                        leptos::view! {cx, <Dialog character pos parse msg /> }
+                    let comp = sycamore::render_to_string(|cx| {
+                        view! {cx, Dialog(character=character, pos=pos, parse=parse, msg=msg) }
                     });
                     let res = render(&comp);
 

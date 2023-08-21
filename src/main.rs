@@ -5,11 +5,11 @@ pub mod components;
 pub mod hash;
 pub mod icons;
 pub mod images;
-pub mod leptos;
 pub mod markdown;
 pub mod pages;
 pub mod rsc;
 pub mod social_img;
+pub mod sycamore;
 
 use axum::{
     http::Request,

@@ -1,13 +1,12 @@
 use axum::{extract::Query, http::HeaderMap, response::IntoResponse, Extension, Form};
-use leptos::*;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
+use sycamore::prelude::*;
 
 use crate::{
     icons::Heart,
-    leptos::LeptosComponent,
-    leptos_component,
     pages::auth::{AuthContext, User},
+    root,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -89,22 +88,29 @@ async fn theasyncwrapper(
     (count, has_like, payload)
 }
 
+#[derive(Props)]
+pub struct HeartButtonProps {
+    pub count: String,
+    pub has_like: bool,
+    pub payload: String,
+}
+
 #[component]
-fn HeartButton(cx: Scope, count: String, has_like: bool, payload: String) -> impl IntoView {
+fn HeartButton<G: Html>(cx: Scope, props: HeartButtonProps) -> View<G> {
     view! { cx,
-        <button
-            class="inline-flex items-center justify-center text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset0 disabled:opacity-50 disabled:pointer-events-none bg-transparent hover:bg-slate-100 data-[state=open]:bg-transparent h-9 px-2 rounded-md"
-            hx-post="/components/like-btn"
-            hx-trigger="click"
-            hx-target="this"
-            hx-swap="outerHTML"
-            hx-vals=payload
-            data-loading-disable>
-                <div class="flex flex-row items-center justify-center gap-2 font-neu text-3xl font-bold">
-                    <Heart filled=has_like />
-                    <span>{count}</span>
-                </div>
-        </button>
+        button(
+            class="inline-flex items-center justify-center text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset0 disabled:opacity-50 disabled:pointer-events-none bg-transparent hover:bg-slate-100 data-[state=open]:bg-transparent h-9 px-2 rounded-md",
+            hx-post="/components/like-btn",
+            hx-trigger="click",
+            hx-target="this",
+            hx-swap="outerHTML",
+            hx-vals=props.payload,
+            data-loading-disable=true) {
+                div(class="flex flex-row items-center justify-center gap-2 font-neu text-3xl font-bold") {
+                Heart(filled=props.has_like)
+                span { (props.count) }
+            }
+        }
     }
 }
 
@@ -127,8 +133,8 @@ pub async fn handler_get(
 ) -> impl IntoResponse {
     let (count, has_like, payload) =
         theasyncwrapper(pool, auth.current_user, &query.url, false).await;
-    leptos_component! {
-        <HeartButton count=count.to_string() has_like=has_like payload />
+    root! {
+        HeartButton(count=count.to_string(), has_like=has_like, payload=payload)
     }
 }
 
@@ -147,8 +153,8 @@ pub async fn handler_post(
 
     (
         header_map,
-        leptos_component! {
-            <HeartButton count=count.to_string() has_like=has_like payload />
+        root! {
+            HeartButton(count=count.to_string(), has_like=has_like, payload=payload)
         },
     )
 }
