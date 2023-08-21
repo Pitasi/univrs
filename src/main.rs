@@ -144,18 +144,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .layer(Extension(oauth_client))
         .layer(Extension(articles_repo))
         .layer(auth_layer)
-        .layer(session_layer)
-        .layer(CompressionLayer::new())
-        .layer(
-            TraceLayer::new_for_http()
-                .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
-                .on_response(trace::DefaultOnResponse::new().level(Level::INFO)),
-        );
+        .layer(session_layer);
 
     #[cfg(debug_assertions)]
     let router = router.layer(tower_livereload::LiveReloadLayer::new().request_predicate(not_htmx));
     #[cfg(debug_assertions)]
     println!("Live reload enabled");
+
+    let router = router.layer(CompressionLayer::new()).layer(
+        TraceLayer::new_for_http()
+            .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
+            .on_response(trace::DefaultOnResponse::new().level(Level::INFO)),
+    );
 
     let addr: SocketAddr = (
         IpAddr::from_str(&env::var("HOST").unwrap_or("127.0.0.1".into()))?,
