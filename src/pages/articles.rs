@@ -110,7 +110,7 @@ fn ArticleContent<G: Html>(cx: Scope, props: ArticleContentProps) -> View<G> {
             article(class="w-full bg-floralwhite p-8") {
                 div(class="mx-auto max-w-2xl") {
                     div(class="flex flex-col gap-3") {
-                        h1(class="font-neu text-bold text-darkviolet") {
+                        h1(class="title font-neu font-semibold text-darkviolet text-4xl") {
                             (props.a.title)
                         }
                         div(class="flex flex-row") {

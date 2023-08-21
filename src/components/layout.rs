@@ -32,7 +32,7 @@ pub fn Layout<'a, G: Html>(cx: Scope<'a>, props: LayoutProps<'a, G>) -> View<G> 
             meta(name="viewport", content="width=device-width, initial-scale=1")
             Metatag(name="description".into(), attr:content="Antonio's personal website, a backend software engineer passionate about clean, maintainable software. Currently working at Qredo, aiming to decentralize the private keys for cryptocurrencies. Founder of the local community, pisa.dev.") {}
             link(rel="preload", href="/static/Inter-VariableFont_slnt,wght.ttf", crossorigin="anonymous", as="font", type_="font/ttf")
-            link(rel="preload", href="/static/DarkerGrotesque-VariableFont_wght.ttf", crossorigin="anonymous", as="font", type_="font/ttf")
+            link(rel="preload", href="/static/ClashDisplay-Variable.woff2", crossorigin="anonymous", as="font", type_="font/woff2")
             CssFile(path="style.dist.css".into()) {}
             CssFile(path="tailwind.css".into()) {}
             script(defer=true, data-domain="anto.pt",src="https://plausible.anto.pt/js/plausible.js") {}
@@ -99,7 +99,7 @@ pub fn MobileNavbar<G: Html>(cx: Scope) -> View<G> {
             div(class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-all duration-100 data-[state=closed]:animate-out data-[state=open]:fade-in") {}
             div(class="fixed z-50 grid w-full gap-4 rounded-b-lg border-black bg-white shadow-neu-3 animate-in data-[state=open]:fade-in-90 data-[state=open]:slide-in-from-bottom-10 sm:rounded-lg sm:zoom-in-90 data-[state=open]:sm:slide-in-from-bottom-0 bottom-0 top-auto border-0 p-0 sm:max-w-full lg:hidden") {
                 div(class="sticky bottom-0 top-0 max-h-screen overflow-auto p-4 lg:border-r-2 w-full space-y-20 border-t-2 border-black bg-lightviolet bg-pattern-hideout pb-10") {
-                    div(class="space-y-10") {
+                    div(class="space-y-8") {
                         SidebarHeader(img_src="static/bulb.webp".into(), title="Antonio Pitasi".into()) {}
                         RootSidebarNav {}
                     }
@@ -170,7 +170,7 @@ pub fn RootSidebar<G: Html>(cx: Scope) -> View<G> {
             max-h-screen space-y-8 overflow-auto border-black p-4
             lg:border-r-2
         ") {
-            div(class="space-y-8") {
+            div(class="space-y-16") {
                 SidebarHeader(title="Antonio Pitasi".into(), img_src="static/bulb.webp".into()) {}
                 RootSidebarNav {}
             }
@@ -186,21 +186,21 @@ pub fn SidebarHeader<G: Html>(
 ) -> View<G> {
     view! {
         cx,
-        div(class="flex h-10 w-full flex-row items-center gap-1") {
+        div(class="flex h-10 w-full flex-row gap-1 items-center") {
             (if img_src.is_some() {
                 let path = img_src.clone().unwrap();
                 view!{ cx,
-                    div(class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl") {
+                    div(class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl") {
                         StaticImg(path=path, alt="".into(), class="w-full h-full object-contain".into()) {}
                     }
                 }
             } else {
                 view! { cx,
-                    div(class="h-10 w-4") {}
+                    div(class="h-8 w-2") {}
                 }
             })
 
-            div(class="flex flex-col font-neu text-xl font-bold leading-none tracking-tight text-black") {
+            div(class="flex flex-col font-neu text-md font-medium leading-none text-black") {
                 span { (title) }
             }
         }
@@ -343,7 +343,7 @@ pub fn SecondarySidebar<'a, G: Html>(
     let children = props.children.call(cx);
     view! { cx,
         div(class="sticky bottom-0 top-0 max-h-screen w-full space-y-8 overflow-auto border-black p-4 lg:border-r-2 min-h-full shrink-0 bg-pattern-hideout pb-24 lg:block lg:min-h-0 lg:pb-0") {
-            div(class="space-y-8") {
+            div(class="space-y-16") {
                 SidebarHeader(title=props.title) {}
                 SidebarNav {
                     (children)
