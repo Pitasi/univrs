@@ -125,7 +125,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route("/auth/logout", get(pages::auth::logout_handler))
         .route("/", get(pages::homepage::handler))
         .route("/articles", get(pages::articles::page_articles))
+        .route("/articles/", get(pages::articles::page_articles))
         .route("/articles/:slug", get(pages::articles::page_article))
+        .route("/articles/:slug/", get(pages::articles::page_article))
         .route(
             "/articles/:slug/social-image.png",
             get(social_img::social_image_article),
