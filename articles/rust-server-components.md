@@ -668,7 +668,7 @@ pub fn static_img(path: &str, alt: &str, class: &str) -> Markup {
 
 ---
 
-If you enjoyed this article you can find me on Mastodon: [@zaphodias@hachyderm.io](https://hachyderm.io/@zaphodias) or [LinkedIn](https://linkedin.com/in/pitasi).
+If you enjoyed this article you can find me on X: [@zaphodias](https://x.com/zaphodias), Mastodon: [@zaphodias@hachyderm.io](https://hachyderm.io/@zaphodias) or [LinkedIn](https://linkedin.com/in/pitasi).
 
 I never take things personally and value any constructive criticism that helps me learn something new!
 
