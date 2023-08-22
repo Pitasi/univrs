@@ -1,3 +1,4 @@
+use std::fmt::Write;
 use std::fs;
 use std::path::{Path, PathBuf};
 use sycamore::prelude::*;
@@ -178,7 +179,13 @@ pub fn Image<G: Html>(cx: Scope, mut props: ImageProps) -> View<G> {
             .collect::<Vec<_>>(),
     );
 
-    let class = props.class.clone();
+    let mut class = String::new();
+    if props.class.contains("h-full") {
+        class.write_str("h-full ").unwrap();
+    }
+    if props.class.contains("w-full") {
+        class.write_str("w-full ").unwrap();
+    }
 
     view! { cx,
         picture(class=class) {
