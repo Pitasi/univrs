@@ -212,7 +212,7 @@ pub fn RootSidebarNav<G: Html>(cx: Scope) -> View<G> {
     let items = vec![
         ("/", "Home", Some(Home(cx))),
         ("/articles", "Articles", Some(Notebook(cx))),
-        // ("/apps", "Apps", Some(App(cx))),
+        ("/apps", "Apps", Some(App(cx))),
     ];
 
     let nav_items = View::new_fragment(

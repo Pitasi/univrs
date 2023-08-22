@@ -33,9 +33,10 @@ pub async fn handler_app(
     Path(slug): Path<String>,
 ) -> impl IntoResponse {
     let app = apps_repo.get_by_slug(&slug).await.unwrap();
+    let name = app.name.clone();
     root! {
         (uri, auth, apps_repo),
-        Title { "Apps - Antonio Pitasi" }
+        Title { (name) " - Apps - Antonio Pitasi" }
         Layout {
             Apps {
                 AppContent(app=app)
@@ -104,10 +105,10 @@ fn AppContent<G: Html>(cx: Scope, props: AppContentProps) -> View<G> {
             Header(title=title) {}
             article(class="w-full bg-floralwhite p-8") {
                 div(class="mx-auto max-w-2xl space-y-6") {
-                    div(class="flex flex-row gap-8 items-center") {
+                    div(class="flex flex-row gap-4 sm:gap-8 items-center") {
                         Image(sources=props.app.images.clone(), alt=title2, class="w-20 h-20 rounded-2xl bg-white object-contain".into())
 
-                        h1(class="title font-neu font-semibold text-darkviolet text-4xl") {
+                        h1(class="title font-neu font-semibold text-darkviolet text-3xl md:text-4xl") {
                             (props.app.name)
                         }
                     }
