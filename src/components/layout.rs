@@ -1,13 +1,13 @@
 use std::{fs::File, io::BufReader};
 
-use axum::http::Uri;
+use axum::http::{self, Uri};
 use data_encoding::HEXLOWER;
 use stylist::style;
 use sycamore::prelude::*;
 
 use crate::{
     hash,
-    icons::{Burger, Home, Logout, Pen, SmallX},
+    icons::{App, Burger, Heart, Home, Logout, Notebook, SmallX},
     images::StaticImg,
     pages::auth::AuthContext,
     sycamore::{Body, Dedup, Head, Html, Metatag, Title},
@@ -211,7 +211,8 @@ pub fn SidebarHeader<G: Html>(
 pub fn RootSidebarNav<G: Html>(cx: Scope) -> View<G> {
     let items = vec![
         ("/", "Home", Some(Home(cx))),
-        ("/articles", "Articles", Some(Pen(cx))),
+        ("/articles", "Articles", Some(Notebook(cx))),
+        // ("/apps", "Apps", Some(App(cx))),
     ];
 
     let nav_items = View::new_fragment(
@@ -378,5 +379,60 @@ pub fn MetaOGImage<G: Html>(
         Metatag(name="og:image:width".into(), attr:property="og:image:width", attr:content=&width) {}
         Metatag(name="og:image:height".into(), attr:property="og:image:height", attr:content=&height) {}
         Metatag(name="twitter:card".into(), attr:content="summary_large_image") {}
+    }
+}
+
+#[derive(Props)]
+pub struct HeaderProps {
+    title: String,
+}
+
+#[component]
+pub fn Header<G: Html>(cx: Scope, props: HeaderProps) -> View<G> {
+    let uri = use_context::<http::Uri>(cx);
+    view! {cx,
+        header(class="sticky top-0 z-10 flex w-full items-center justify-between gap-2 overflow-hidden border-b-2 border-black bg-yellow px-3 py-3 lg:justify-end lg:gap-4") {
+            span(id="header-title", class="line-clamp-1 text-ellipsis font-bold", style="opacity: 0; transform: translateY(30px) translateZ(0px);") {
+                (props.title)
+            }
+            LazyHeartButton(path=format!("/components/like-btn?url={}", uri.path())) {}
+        }
+        script {(r#"
+            var animation = anime({
+              targets: '#header-title',
+              translateY: 0,
+              opacity: 1,
+              easing: 'easeInOutSine',
+              autoplay: false
+            });
+
+            window.addEventListener("scroll", () => {
+                const scrollPercent = Math.min(window.scrollY, 200) / 200;
+                animation.seek(scrollPercent * animation.duration);
+            }, false);
+        "#)}
+    }
+}
+
+#[derive(Props)]
+pub struct LazyHeartButtonProps {
+    path: String,
+}
+
+#[component]
+pub fn LazyHeartButton<G: Html>(cx: Scope, props: LazyHeartButtonProps) -> View<G> {
+    view! { cx,
+        button(
+            class="inline-flex items-center justify-center text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset0 disabled:opacity-50 disabled:pointer-events-none bg-transparent hover:bg-slate-100 data-[state=open]:bg-transparent h-9 px-2 rounded-md",
+            hx-get=props.path,
+            hx-trigger="load",
+            hx-target="this",
+            hx-swap="outerHTML",
+        ) {
+            div(class="flex flex-row items-center justify-center gap-2 font-neu text-3xl font-bold") {
+                Heart(filled=false) {}
+                span { ".." }
+            }
+        }
     }
 }

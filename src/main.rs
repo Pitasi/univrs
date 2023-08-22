@@ -1,5 +1,6 @@
 #![warn(clippy::pedantic)]
 
+pub mod apps;
 pub mod articles;
 pub mod components;
 pub mod hash;
@@ -43,7 +44,7 @@ use tower_http::{
 use tower_livereload::LiveReloadLayer;
 use tracing::Level;
 
-use crate::{articles::ArticlesRepo, pages::auth::Role};
+use crate::{apps::AppsRepo, articles::ArticlesRepo, pages::auth::Role};
 
 fn not_htmx<Body>(req: &Request<Body>) -> bool {
     !req.headers().contains_key("hx-request")
@@ -116,6 +117,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let oauth_client = build_oauth_client();
 
     let articles_repo = ArticlesRepo::new();
+    let apps_repo = AppsRepo::new(pool.clone());
 
     let app = Router::new()
         .nest_service("/static", files)
@@ -124,10 +126,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route("/auth/callback", get(pages::auth::oauth_callback_handler))
         .route("/auth/logout", get(pages::auth::logout_handler))
         .route("/", get(pages::homepage::handler))
+        // Articles
         .route("/articles", get(pages::articles::page_articles))
         .route("/articles/", get(pages::articles::page_articles))
         .route("/articles/:slug", get(pages::articles::page_article))
         .route("/articles/:slug/", get(pages::articles::page_article))
+        // Apps
+        .route("/apps", get(pages::apps::handler))
+        .route("/apps/", get(pages::apps::handler))
+        .route("/apps/:slug", get(pages::apps::handler_app))
+        .route("/apps/:slug/", get(pages::apps::handler_app))
         .route(
             "/articles/:slug/social-image.png",
             get(social_img::social_image_article),
@@ -143,6 +151,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .layer(Extension(pool))
         .layer(Extension(oauth_client))
         .layer(Extension(articles_repo))
+        .layer(Extension(apps_repo))
         .layer(auth_layer)
         .layer(session_layer);
 

@@ -3,8 +3,7 @@ use sycamore::prelude::*;
 
 use crate::{
     articles::{Article, ArticlesRepo},
-    components::layout::{Layout, MetaOGImage, SecondarySidebar, SidebarNavItem},
-    icons::Heart,
+    components::layout::{Header, Layout, MetaOGImage, SecondarySidebar, SidebarNavItem},
     root,
     sycamore::{Metatag, Title},
 };
@@ -121,61 +120,6 @@ fn ArticleContent<G: Html>(cx: Scope, props: ArticleContentProps) -> View<G> {
                     }
                     div(class="mt-4", dangerously_set_inner_html=props.a.content.clone()) { }
                 }
-            }
-        }
-    }
-}
-
-#[derive(Props)]
-pub struct HeaderProps {
-    title: String,
-}
-
-#[component]
-fn Header<G: Html>(cx: Scope, props: HeaderProps) -> View<G> {
-    let uri = use_context::<http::Uri>(cx);
-    view! {cx,
-        header(class="sticky top-0 z-10 flex w-full items-center justify-between gap-2 overflow-hidden border-b-2 border-black bg-yellow px-3 py-3 lg:justify-end lg:gap-4") {
-            span(id="header-title", class="line-clamp-1 text-ellipsis font-bold", style="opacity: 0; transform: translateY(30px) translateZ(0px);") {
-                (props.title)
-            }
-            LazyHeartButton(path=format!("/components/like-btn?url={}", uri.path())) {}
-        }
-        script {(r#"
-            var animation = anime({
-              targets: '#header-title',
-              translateY: 0,
-              opacity: 1,
-              easing: 'easeInOutSine',
-              autoplay: false
-            });
-
-            window.addEventListener("scroll", () => {
-                const scrollPercent = Math.min(window.scrollY, 200) / 200;
-                animation.seek(scrollPercent * animation.duration);
-            }, false);
-        "#)}
-    }
-}
-
-#[derive(Props)]
-pub struct LazyHeartButtonProps {
-    path: String,
-}
-
-#[component]
-fn LazyHeartButton<G: Html>(cx: Scope, props: LazyHeartButtonProps) -> View<G> {
-    view! { cx,
-        button(
-            class="inline-flex items-center justify-center text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset0 disabled:opacity-50 disabled:pointer-events-none bg-transparent hover:bg-slate-100 data-[state=open]:bg-transparent h-9 px-2 rounded-md",
-            hx-get=props.path,
-            hx-trigger="load",
-            hx-target="this",
-            hx-swap="outerHTML",
-        ) {
-            div(class="flex flex-row items-center justify-center gap-2 font-neu text-3xl font-bold") {
-                Heart(filled=false) {}
-                span { ".." }
             }
         }
     }

@@ -106,10 +106,10 @@ fn HeartButton<G: Html>(cx: Scope, props: HeartButtonProps) -> View<G> {
             hx-swap="outerHTML",
             hx-vals=props.payload,
             data-loading-disable=true) {
-                div(class="flex flex-row items-center justify-center gap-2 font-neu text-3xl font-bold") {
-                Heart(filled=props.has_like)
-                span { (props.count) }
-            }
+                div(class="flex flex-row items-center justify-center gap-2 font-neu text-3xl font-semibold") {
+                    Heart(filled=props.has_like)
+                    span(class="translate-y-0.5") { (props.count) }
+                }
         }
     }
 }

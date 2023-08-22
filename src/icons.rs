@@ -69,13 +69,10 @@ pub fn Logout<G: Html>(cx: Scope) -> View<G> {
 }
 
 #[component]
-pub fn Pen<G: Html>(cx: Scope) -> View<G> {
+pub fn Notebook<G: Html>(cx: Scope) -> View<G> {
     view! { cx,
-        svg(xmlns="http://www.w3.org/2000/svg", width="24", height="24", viewBox="0 0 24 24", fill="none", stroke="currentColor", stroke-width="2", stroke-linecap="round", stroke-linejoin="round", class="mr-2 h-4 w-4") {
-            path(d="m12 19 7-7 3 3-7 7-3-3z") {}
-            path(d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z") {}
-            path(d="m2 2 7.586 7.586") {}
-            circle(cx="11", cy="11", r="2") {}
+        svg(class="mr-2 h-4 w-4", width="16", height="16", viewBox="0 0 16 16", xmlns="http://www.w3.org/2000/svg") {
+            path(fill="currentColor", d="M3.75 1A1.75 1.75 0 0 0 2 2.75v10.5c0 .966.784 1.75 1.75 1.75h7.5A1.75 1.75 0 0 0 13 13.25V2.75A1.75 1.75 0 0 0 11.25 1h-7.5ZM4 3.75A.75.75 0 0 1 4.75 3h5.5a.75.75 0 0 1 .75.75v.5a.75.75 0 0 1-.75.75h-5.5A.75.75 0 0 1 4 4.25v-.5ZM14 4h.625c.207 0 .375.168.375.375v1.25a.375.375 0 0 1-.375.375H14V4Zm.625 3H14v2h.625A.375.375 0 0 0 15 8.625v-1.25A.375.375 0 0 0 14.625 7ZM14 10h.625c.207 0 .375.168.375.375v1.25a.375.375 0 0 1-.375.375H14v-2Z")
         }
     }
 }
@@ -83,9 +80,8 @@ pub fn Pen<G: Html>(cx: Scope) -> View<G> {
 #[component]
 pub fn Home<G: Html>(cx: Scope) -> View<G> {
     view! { cx,
-        svg(xmlns="http://www.w3.org/2000/svg", width="24", height="24", viewBox="0 0 24 24", fill="none", stroke="currentColor", stroke-width="2", stroke-linecap="round", stroke-linejoin="round", class="mr-2 h-4 w-4") {
-            path(d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z") {}
-            polyline(points="9 22 9 12 15 12 15 22") {}
+        svg(class="mr-2 h-4 w-4", width="24", height="24", viewBox="0 0 24 24", xmlns="http://www.w3.org/2000/svg") {
+            path(fill="currentColor", fill-rule="evenodd", d="M12.707 2.293a1 1 0 0 0-1.414 0l-7 7l-2 2a1 1 0 1 0 1.414 1.414L4 12.414V19a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-6.586l.293.293a1 1 0 0 0 1.414-1.414l-9-9Z", clip-rule="evenodd")
         }
     }
 }
@@ -93,15 +89,35 @@ pub fn Home<G: Html>(cx: Scope) -> View<G> {
 #[derive(Props)]
 pub struct HeartProps {
     filled: bool,
+    #[prop(default)]
+    class: Option<String>,
 }
 
 #[component]
 pub fn Heart<G: Html>(cx: Scope, props: HeartProps) -> View<G> {
     let fill = if props.filled { "red" } else { "white" };
+    let class = format!("drop-shadow-neu-2 {}", props.class.unwrap_or("".into()));
     view! { cx,
-        svg (xmlns="http://www.w3.org/2000/svg", width="24", height="24", viewBox="0 0 24 24", fill=fill, stroke="black", stroke-width="2", stroke-linecap="round", stroke-linejoin="round", class="drop-shadow-neu-2") {
+        svg (class=class, xmlns="http://www.w3.org/2000/svg", width="24", height="24", viewBox="0 0 24 24", fill=fill, stroke="black", stroke-width="2", stroke-linecap="round", stroke-linejoin="round") {
             path(d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z") {}
         }
     }
 }
 
+#[component]
+pub fn App<G: Html>(cx: Scope) -> View<G> {
+    view! { cx,
+        svg(class="mr-2 h-4 w-4", width="256", height="256", viewBox="0 0 256 256", xmlns="http://www.w3.org/2000/svg") {
+            path(fill="currentColor", d="M216 40H40a16 16 0 0 0-16 16v144a16 16 0 0 0 16 16h176a16 16 0 0 0 16-16V56a16 16 0 0 0-16-16ZM68 96a12 12 0 1 1 12-12a12 12 0 0 1-12 12Zm40 0a12 12 0 1 1 12-12a12 12 0 0 1-12 12Z")
+        }
+    }
+}
+
+#[component]
+pub fn Link<G: Html>(cx: Scope) -> View<G> {
+    view! { cx,
+        svg(class="h-5 w-5 inline", width="256", height="256", viewBox="0 0 256 256", xmlns="http://www.w3.org/2000/svg") {
+            path(fill="currentColor", d="M136.37 187.53a12 12 0 0 1 0 17l-5.94 5.94a60 60 0 0 1-84.88-84.88l24.12-24.11A60 60 0 0 1 152 99a12 12 0 1 1-16 18a36 36 0 0 0-49.37 1.47l-24.1 24.08a36 36 0 0 0 50.92 50.92l5.94-5.94a12 12 0 0 1 16.98 0Zm74.08-142a60.09 60.09 0 0 0-84.88 0l-5.94 5.94a12 12 0 0 0 17 17l5.94-5.94a36 36 0 0 1 50.92 50.92l-24.11 24.12A36 36 0 0 1 120 139a12 12 0 1 0-16 18a60 60 0 0 0 82.3-2.43l24.12-24.11a60.09 60.09 0 0 0 .03-84.91Z")
+        }
+    }
+}

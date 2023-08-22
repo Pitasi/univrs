@@ -2,7 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use sycamore::prelude::*;
 
-#[derive(Clone, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum ImageSrc {
     Svg(String),
     Avif(String),
@@ -12,13 +12,18 @@ pub enum ImageSrc {
 }
 
 impl ImageSrc {
-    pub fn path(&self) -> &str {
-        match self {
+    pub fn path(&self) -> String {
+        let p = match self {
             ImageSrc::Svg(p) => p,
             ImageSrc::Avif(p) => p,
             ImageSrc::Webp(p) => p,
             ImageSrc::Png(p) => p,
             ImageSrc::Jpeg(p) => p,
+        };
+        if p.starts_with("http") || p.starts_with("/") {
+            p.into()
+        } else {
+            format!("/{}", p)
         }
     }
 
@@ -29,6 +34,19 @@ impl ImageSrc {
             ImageSrc::Webp(_) => "image/webp",
             ImageSrc::Png(_) => "image/png",
             ImageSrc::Jpeg(_) => "image/jpeg",
+        }
+    }
+}
+
+impl From<String> for ImageSrc {
+    fn from(path: String) -> Self {
+        match Path::new(&path).extension().unwrap().to_str().unwrap() {
+            "svg" => ImageSrc::Svg(path),
+            "avif" => ImageSrc::Avif(path),
+            "webp" => ImageSrc::Webp(path),
+            "png" => ImageSrc::Png(path),
+            "jpg" | "jpeg" => ImageSrc::Jpeg(path),
+            _ => unreachable!(),
         }
     }
 }
@@ -111,43 +129,12 @@ pub struct StaticImgProps {
 
 #[component]
 pub fn StaticImg<G: Html>(cx: Scope, props: StaticImgProps) -> View<G> {
-    let mut sources = search_available_sources(&props.path);
+    let sources = search_available_sources(&props.path);
     if sources.is_empty() {
         panic!("couldn't find any image source for {}", props.path);
     }
 
-    let fallback = sources.pop().unwrap();
-
-    let sources_elements = View::new_fragment(
-        sources
-            .into_iter()
-            .map(|s| {
-                let path = format!("/{}", s.path());
-                let mime_type = s.mime_type();
-                view! { cx,
-                    source(
-                        srcset=(path),
-                        type=(mime_type)
-                    ) {}
-                }
-            })
-            .collect::<Vec<_>>(),
-    );
-
-    view! {
-        cx,
-        picture(class="contents") {
-            (sources_elements)
-
-            img(
-                src=format!("/{}", fallback.path()),
-                class=(props.class),
-                alt=(props.alt),
-                loading="lazy",
-                decoding="async"
-            ) {}
-        }
-    }
+    view! { cx, Image(sources=sources, alt=props.alt, class=props.class) }
 }
 
 #[derive(Props)]
@@ -159,27 +146,42 @@ pub struct RemoteImgProps {
 
 #[component]
 pub fn RemoteImg<G: Html>(cx: Scope, props: RemoteImgProps) -> View<G> {
-    let mut sources: Vec<ImageSrc> = props.srcset.into();
-    if sources.is_empty() {
+    let sources: Vec<ImageSrc> = props.srcset.into();
+    view! { cx, Image(sources=sources, alt=props.alt, class=props.class) }
+}
+
+#[derive(Props)]
+pub struct ImageProps {
+    sources: Vec<ImageSrc>,
+    alt: String,
+    class: String,
+}
+
+#[component]
+pub fn Image<G: Html>(cx: Scope, mut props: ImageProps) -> View<G> {
+    if props.sources.is_empty() {
         panic!("there must be at least one source");
     }
 
-    let fallback = sources.pop().unwrap();
+    let fallback = props.sources.pop().unwrap();
 
     let sources_elements = View::new_fragment(
-        sources
+        props
+            .sources
             .into_iter()
             .map(|s| {
                 let mime_type = s.mime_type();
                 view! { cx,
-                    source( srcset=s.path(), type=mime_type) {}
+                    source(srcset=s.path(), type=mime_type) {}
                 }
             })
             .collect::<Vec<_>>(),
     );
 
+    let class = props.class.clone();
+
     view! { cx,
-        picture(class="contents") {
+        picture(class=class) {
             (sources_elements)
             img(
                 src=fallback.path(),
