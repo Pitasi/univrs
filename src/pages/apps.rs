@@ -62,7 +62,7 @@ pub async fn Apps<'a, G: Html>(cx: Scope<'a>, props: AppsProps<'a, G>) -> View<G
                 let c = view! {
                     cx,
                     div(class="flex flex-row gap-4 items-center") {
-                        Image(sources=app.images, alt=app.name.clone(), class="w-10 h-10 rounded-lg bg-white".into())
+                        Image(sources=app.images, alt=app.name.clone(), class="w-10 h-10 rounded-lg bg-white object-contain".into())
                         span(class="font-semibold"){ (name) }
                     }
                 };
@@ -105,7 +105,7 @@ fn AppContent<G: Html>(cx: Scope, props: AppContentProps) -> View<G> {
             article(class="w-full bg-floralwhite p-8") {
                 div(class="mx-auto max-w-2xl space-y-6") {
                     div(class="flex flex-row gap-8 items-center") {
-                        Image(sources=props.app.images.clone(), alt=title2, class="w-20 h-20 rounded-2xl bg-white".into())
+                        Image(sources=props.app.images.clone(), alt=title2, class="w-20 h-20 rounded-2xl bg-white object-contain".into())
 
                         h1(class="title font-neu font-semibold text-darkviolet text-4xl") {
                             (props.app.name)
