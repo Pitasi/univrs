@@ -131,11 +131,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route("/articles/", get(pages::articles::page_articles))
         .route("/articles/:slug", get(pages::articles::page_article))
         .route("/articles/:slug/", get(pages::articles::page_article))
-        // Apps
-        .route("/apps", get(pages::apps::handler))
-        .route("/apps/", get(pages::apps::handler))
-        .route("/apps/:slug", get(pages::apps::handler_app))
-        .route("/apps/:slug/", get(pages::apps::handler_app))
+        // Uses
+        .route("/uses", get(pages::apps::handler))
+        .route("/uses/", get(pages::apps::handler))
+        .route("/uses/:slug", get(pages::apps::handler_app))
+        .route("/uses/:slug/", get(pages::apps::handler_app))
         .route(
             "/articles/:slug/social-image.png",
             get(social_img::social_image_article),

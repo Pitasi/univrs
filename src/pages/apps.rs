@@ -19,7 +19,7 @@ pub async fn handler(
 ) -> impl IntoResponse {
     root! {
         (uri, auth, apps_repo),
-        Title { "Apps - Antonio Pitasi" }
+        Title { "Uses - Antonio Pitasi" }
         Layout {
             Apps {}
         }
@@ -36,7 +36,7 @@ pub async fn handler_app(
     let name = app.name.clone();
     root! {
         (uri, auth, apps_repo),
-        Title { (name) " - Apps - Antonio Pitasi" }
+        Title { (name) " - Uses - Antonio Pitasi" }
         Layout {
             Apps {
                 AppContent(app=app)
@@ -58,7 +58,7 @@ pub async fn Apps<'a, G: Html>(cx: Scope<'a>, props: AppsProps<'a, G>) -> View<G
     let v = View::new_fragment(
         apps.into_iter()
             .map(|app| {
-                let href = format!("/apps/{}", app.slug);
+                let href = format!("/uses/{}", app.slug);
                 let name = app.name.clone();
                 let c = view! {
                     cx,
@@ -84,7 +84,7 @@ pub async fn Apps<'a, G: Html>(cx: Scope<'a>, props: AppsProps<'a, G>) -> View<G
 
     view! { cx,
         div(class="relative h-full w-full flex-row lg:grid lg:grid-cols-[20rem_minmax(0,1fr)]") {
-            SecondarySidebar(title="Apps".into()) {(v)}
+            SecondarySidebar(title="Uses".into()) {(v)}
             (children)
         }
     }
