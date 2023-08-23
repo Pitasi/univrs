@@ -1,7 +1,12 @@
 use atom_syndication::{
     ContentBuilder, EntryBuilder, FeedBuilder, LinkBuilder, PersonBuilder, TextBuilder,
 };
-use axum::{extract::Path, http, response::IntoResponse, Extension};
+use axum::{
+    extract::Path,
+    http,
+    response::{IntoResponse, Response},
+    Extension,
+};
 use sycamore::prelude::*;
 
 use crate::{
@@ -130,8 +135,12 @@ pub async fn page_article(
     Extension(auth): Extension<AuthContext>,
     Extension(articles_repo): Extension<ArticlesRepo>,
     Path(slug): Path<String>,
-) -> impl IntoResponse {
-    let article = articles_repo.get_article_by_slug(&slug).unwrap().clone();
+) -> Response {
+    let article = articles_repo.get_article_by_slug(&slug);
+    if article.is_none() {
+        return (http::StatusCode::NOT_FOUND, "404 not found").into_response();
+    }
+    let article = article.unwrap().clone();
     let title = format!("{} - Antonio Pitasi", article.title.clone());
     let og_image = format!(
         "https://anto.pt/articles/{}/social-image.png",
@@ -148,7 +157,7 @@ pub async fn page_article(
                 ArticleContent(a=article) {}
             }
         }
-    }
+    }.into_response()
 }
 
 #[derive(Props)]
