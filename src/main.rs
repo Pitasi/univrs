@@ -129,6 +129,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         // Articles
         .route("/articles", get(pages::articles::page_articles))
         .route("/articles/", get(pages::articles::page_articles))
+        .route("/articles/atom.xml", get(pages::articles::articles_rss))
         .route("/articles/:slug", get(pages::articles::page_article))
         .route("/articles/:slug/", get(pages::articles::page_article))
         // Uses
