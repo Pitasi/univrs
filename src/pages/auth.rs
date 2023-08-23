@@ -52,9 +52,15 @@ impl AuthUser<i64, Role> for User {
 pub type AuthContext =
     axum_login::extractors::AuthContext<i64, User, PostgresStore<User, Role>, Role>;
 
+#[derive(Deserialize)]
+pub struct LoginQuery {
+    redirect_to: Option<String>,
+}
+
 pub async fn login_handler(
     Extension(client): Extension<BasicClient>,
     mut session: WritableSession,
+    Query(q): Query<LoginQuery>,
 ) -> impl IntoResponse {
     // Generate the authorization URL to which we'll redirect the user.
     let (auth_url, csrf_state) = client
@@ -65,14 +71,17 @@ pub async fn login_handler(
 
     // Store the csrf_state in the session so we can assert equality in the callback
     session.insert("csrf_state", csrf_state).unwrap();
+    if let Some(redirect_to) = q.redirect_to {
+        session.insert("redirect_to", redirect_to).unwrap();
+    }
 
     // Redirect to your oauth service
     Redirect::to(auth_url.as_ref())
 }
 
-pub async fn logout_handler(mut auth: AuthContext) {
-    dbg!("Logging out user: {}", &auth.current_user);
+pub async fn logout_handler(mut auth: AuthContext) -> impl IntoResponse {
     auth.logout().await;
+    Redirect::to("/")
 }
 
 #[derive(Debug, Deserialize)]
@@ -88,12 +97,12 @@ pub async fn oauth_callback_handler(
     Extension(oauth_client): Extension<BasicClient>,
     session: ReadableSession,
 ) -> impl IntoResponse {
-    println!("Running oauth callback {query:?}");
     // Compare the csrf state in the callback with the state generated before the
     // request
     let original_csrf_state: CsrfToken = session.get("csrf_state").unwrap();
     let query_csrf_state = query.state.secret();
     let csrf_state_equal = original_csrf_state.secret() == query_csrf_state;
+    let redirect_to: String = session.get("redirect_to").unwrap_or("/".into());
 
     drop(session);
 
@@ -145,18 +154,6 @@ pub async fn oauth_callback_handler(
     }
 
     let user_info = res.json::<TokenResponse>().await.unwrap();
-    // {
-    //   "object": "oauth_user_info",
-    //   "instance_id": "ins_2ShOHnzrS6xAgpuGmo2Cf1CmZpN",
-    //   "email": "antonio@pitasi.dev",
-    //   "email_verified": true,
-    //   "family_name": "Pitasi",
-    //   "given_name": "Antonio",
-    //   "name": "Antonio Pitasi",
-    //   "username": "pitasi",
-    //   "picture": "https://storage.googleapis.com/images.clerk.dev/oauth_github/img_2ShTHTM2KJoiONZ8SWVdb0p0NO0.jpeg",
-    //   "user_id": "user_2ShTH93h3nTyatUwWj0pyuVW9GW"
-    // }
 
     // Fetch the user and log them in
     let mut conn = pool.acquire().await.unwrap();
@@ -167,11 +164,9 @@ pub async fn oauth_callback_handler(
 
     match user {
         Ok(user) => {
-            println!("User found: {:?}", user);
             auth.login(&user).await.unwrap();
         }
-        Err(e) => {
-            println!("User not found: {:?}", e);
+        Err(_) => {
             let user = sqlx::query_as(
                     "insert into users (email, username, picture, role) values ($1, $2, $3, $4) returning *",
                 )
@@ -182,10 +177,9 @@ pub async fn oauth_callback_handler(
                 .fetch_one(&mut conn)
                 .await
                 .unwrap();
-            println!("User created: {:?}", user);
             auth.login(&user).await.unwrap();
         }
     }
 
-    Redirect::to("/")
+    Redirect::to(&redirect_to)
 }

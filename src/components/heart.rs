@@ -1,4 +1,9 @@
-use axum::{extract::Query, http::HeaderMap, response::IntoResponse, Extension, Form};
+use axum::{
+    extract::Query,
+    http::{self, HeaderMap},
+    response::IntoResponse,
+    Extension, Form,
+};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use sycamore::prelude::*;
@@ -145,7 +150,8 @@ pub async fn handler_post(
 ) -> impl IntoResponse {
     let mut header_map = HeaderMap::new();
     if auth.current_user.is_none() {
-        header_map.insert("HX-Redirect", "/auth/login".parse().unwrap());
+        let redirect = format!("/auth/login?redirect_to={}", payload.url);
+        header_map.insert("HX-Redirect", redirect.parse().unwrap());
     }
 
     let (count, has_like, payload) =
