@@ -37,7 +37,7 @@ pub fn Layout<'a, G: Html>(cx: Scope<'a>, props: LayoutProps<'a, G>) -> View<G> 
             CssFile(path="tailwind.css".into()) {}
             script(defer=true, data-domain="anto.pt",src="https://plausible.anto.pt/js/plausible.js") {}
         }
-        Body(attr:class="flex min-h-screen", attr:hx-ext="loading-states") {}
+        Body(attr:class="flex min-h-screen", attr:hx-ext="loading-states", attr:hx-boost="true") {}
 
         script(src="/static/anime.min.js") {}
         script(src="/static/htmx.min.js", integrity="sha384-L6OqL9pRWyyFU3+/bjdSri+iIphTN/bvYyM37tICVyOJkWZLpP2vGn6VUEXgzg6h", crossorigin="anonymous", defer=true) {}
