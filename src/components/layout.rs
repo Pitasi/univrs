@@ -147,7 +147,7 @@ pub fn LoginWidget<G: Html>(cx: Scope) -> View<G> {
         view! {
             cx,
             div(class="w-full") {
-                a(class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset0 disabled:opacity-50 disabled:pointer-events-none data-[state=open]:bg-slate-100 bg-floralwhite text-black hover:bg-slate-200 h-10 py-2 px-4 w-full border-2 border-black", href=login_url) {
+                a(class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset0 disabled:opacity-50 disabled:pointer-events-none data-[state=open]:bg-slate-100 bg-floralwhite text-black hover:bg-slate-200 h-10 py-2 px-4 w-full border-2 border-black", href=login_url, hx-boost="false") {
                     "Sign in"
                 }
             }
