@@ -1,6 +1,11 @@
+use futures::future::join_all;
+use rscx::html;
 use sqlx::{FromRow, PgPool};
 
-use crate::{images::ImageSrc, markdown};
+use crate::{
+    images::ImageSrc,
+    markdown::{Markdown, MarkdownProps},
+};
 
 #[derive(Debug, FromRow)]
 pub struct AppRow {
@@ -20,12 +25,14 @@ pub struct App {
     pub images: Vec<ImageSrc>,
 }
 
-impl From<AppRow> for App {
-    fn from(row: AppRow) -> Self {
+impl App {
+    async fn from_row(row: AppRow) -> Self {
         Self {
             slug: row.slug,
             name: row.name,
-            description: markdown::parse_with_custom_components(&row.description),
+            description: html! {
+                <Markdown source=row.description />
+            },
             url: row.url,
             images: row.images.into_iter().map(From::from).collect(),
         }
@@ -53,7 +60,12 @@ impl AppsRepo {
         .fetch_all(&mut conn)
         .await
         .unwrap();
-        res.into_iter().map(From::from).collect()
+
+        join_all(
+            res.into_iter()
+                .map(|row| async { App::from_row(row).await }),
+        )
+        .await
     }
 
     pub async fn get_by_slug(&self, slug: &str) -> Option<App> {
@@ -68,6 +80,6 @@ impl AppsRepo {
         .fetch_optional(&mut conn)
         .await
         .unwrap();
-        res.map(From::from)
+        App::from_row(res?).await.into()
     }
 }

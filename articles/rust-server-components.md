@@ -7,21 +7,15 @@ I didn't want to get lost in the maze of popular frameworks like Next.js, so I c
 
 It's still slightly complex, but I can outline it right here in this blog article. Can you say the same for Next.js?
 
-<dialog
-    character=raisehand
-    pos=left
-    msg="Do you mean you created your own version of Next.js?">
-</dialog>
-<dialog
-    character=bulb
-    pos=right
-    msg="
-        Absolutely not! That would need a tremendous amount of work, and I
-        simply worked on it in my spare time. I wanted to learn more about Rust
-        and experimented with it by creating something I could use in real
-        life: a webserver.
-    ">
-</dialog>
+<Dialog character=raisehand pos=left>
+Do you mean you created your own version of Next.js?
+</Dialog>
+<Dialog character=bulb pos=right>
+Absolutely not! That would need a tremendous amount of work, and I
+simply worked on it in my spare time. I wanted to learn more about Rust
+and experimented with it by creating something I could use in real
+life: a webserver.
+</Dialog>
 
 I consider this the Rust equivalent of [T3 Stack](https://create.t3.gg/). I did not create a framework; instead, I grabbed existing libraries and added some glue between them.
 
@@ -31,15 +25,15 @@ I know you're excited to dive in, so let me show you what it looks like.
 
 A "Rust Server Component" renders this blog page:
 
-<image avif="https://assets.anto.pt/articles/rsc/showcase2.avif"
+<RemoteImage avif="https://assets.anto.pt/articles/rsc/showcase2.avif"
     webp="https://assets.anto.pt/articles/rsc/showcase2.webp"
-    png="https://assets.anto.pt/articles/rsc/showcase2.png"></image>
+    png="https://assets.anto.pt/articles/rsc/showcase2.png"></RemoteImage>
 
 While the main text of this blog is written in Markdown, I have added a few unique components:
 
-<image avif="https://assets.anto.pt/articles/rsc/showcase_md.avif"
+<RemoteImage avif="https://assets.anto.pt/articles/rsc/showcase_md.avif"
     webp="https://assets.anto.pt/articles/rsc/showcase_md.webp"
-    png="https://assets.anto.pt/articles/rsc/showcase_md.png"></image>
+    png="https://assets.anto.pt/articles/rsc/showcase_md.png"></RemoteImage>
 
 I'm really pleased with the outcome, so let's go!
 
@@ -50,7 +44,7 @@ Remember when internet pages were just HTML files that traveled through the inte
 
 Let us begin our journey, by writing the simplest of the webservers:
 
-<image avif="https://assets.anto.pt/articles/rsc/exc1.avif" webp="https://assets.anto.pt/articles/rsc/exc1.webp" png="https://assets.anto.pt/articles/rsc/exc1.png" ></image>
+<RemoteImage avif="https://assets.anto.pt/articles/rsc/exc1.avif" webp="https://assets.anto.pt/articles/rsc/exc1.webp" png="https://assets.anto.pt/articles/rsc/exc1.png" ></RemoteImage>
 
 ```rust
 #[tokio::main]
@@ -124,25 +118,15 @@ fn nuts(count: i64) -> String {
 }
 ```
 
-<dialog
-    character=raisehand
-    pos=left
-    msg="
+<Dialog character=raisehand pos=left>
 Are you suggesting that the &quot;Rust Server Components&quot; that drew people in here are simply functions that return strings?
-    ">
-</dialog>
-<dialog
-    character=bulb
-    pos=right
-    msg="Yep, that's correct.">
-</dialog>
-<dialog
-    character=facepalm
-    pos=left
-    msg="
+</Dialog>
+<Dialog character=bulb pos=right>
+Yep, that's correct.
+</Dialog>
+<Dialog character=facepalm pos=left>
 You need to put some meaningful content now or no one will ever trust you again.
-    ">
-</dialog>
+</Dialog>
 
 ## Server components
 
@@ -150,15 +134,11 @@ Recently, Next.js and React have been pushing for RSC (the real ones, React Serv
 
 The server finally renders the JSX component into an HTML string, just as I did in the previous section.
 
-<dialog
-    character=finger
-    pos=right
-    msg="
-        Dan Abramov made
-        <a href='https://youtu.be/zMf_xeGPn6s'>this amazing presentation</a>
-        where he used Internet Explorer to navigate a webapp built with RSC.
-    ">
-</dialog>
+<Dialog character=finger pos=right>
+Dan Abramov made <a href='https://youtu.be/zMf_xeGPn6s'>this amazing
+presentation</a> where he used Internet Explorer to navigate a webapp built
+with RSC.
+</Dialog>
 
 JSX provides significantly superior DX than `format!()`, however I've discovered [Maud](https://maud.lambda.xyz/), a pure gold crate. (I discovered Maud thanks to Xe Iaso's [site](https://xeiaso.net) [source code](https://github.com/xe/site)).
 It's not as good as writing JSX, but it's still not terrible.
@@ -186,24 +166,15 @@ fn nuts(count: i64) -> Markup {
 }
 ```
 
-<dialog
-    character=raisehand
-    pos=left
-    msg="
-        If Maud is just a fancier <code>format!()</code>, why the function now
-        returns <code>Markup</code> instead of <code>String</code>?
-    ">
-</dialog>
-<dialog
-    parse=markdown
-    character=bulb
-    pos=right
-    msg="
-`Markup` is a `String`, but it's also a way to express *a string that contains
-HTML*. By default Maud will escape strings contents. Returning `Markup`
+<Dialog character=raisehand pos=left>
+If Maud is just a fancier <code>format!()</code>, why the function now
+returns <code>Markup</code> instead of <code>String</code>?
+</Dialog>
+<Dialog character=bulb pos=right>
+<code>Markup</code> is a <code>String</code>, but it's also a way to express <em>a string that contains
+HTML</em>. By default Maud will escape strings contents. Returning <code>Markup</code>
 directly is easier for nesting Maud components.
-    ">
-</dialog>
+</Dialog>
 
 The ability to have control flows like if-s and loops straight into your template is what makes Maud so powerful. More information is available on the [official website](https://maud.lambda.xyz/control-structures.html).
 
@@ -265,26 +236,21 @@ pub async fn page() -> Markup {
 
 Check out this lovely outcome, which shows how far we've come:
 
-<image png="https://assets.anto.pt/articles/rsc/sample_page.png" webp="https://assets.anto.pt/articles/rsc/sample_page.webp" avif="https://assets.anto.pt/articles/rsc/sample_page.avif"></image>
+<RemoteImage png="https://assets.anto.pt/articles/rsc/sample_page.png" webp="https://assets.anto.pt/articles/rsc/sample_page.webp" avif="https://assets.anto.pt/articles/rsc/sample_page.avif"></RemoteImage>
 
 
 ## MD...X?
 
 MDX enables the usage of JSX in markdown documents. For my blog, I wanted something similar.
 
-<dialog
-    character=raisehand
-    pos=left
-    msg="Are we the reason you wanted custom components?">
-</dialog>
-<dialog
-    character=bulb
-    pos=right
-    msg="
-        Bingo. For example, here is our source code:
-        <pre><code>&lt;dialog character=raisehand pos=left msg=&quot;Are we the reason you wanted custom components?&quot;&gt;&lt;/dialog&gt;
-&lt;dialog character=bulb pos=right msg=&quot;Bingo. Here is our source code: &lt;pre&gt;&lt;code&gt;stack overflow&lt;/code&gt;&lt;/pre&gt;&quot;&gt;&lt;/dialog&gt;</code></pre>">
-</dialog>
+<Dialog character=raisehand pos=left>
+Are we the reason you wanted custom components?
+</Dialog>
+<Dialog character=bulb pos=right>
+Bingo. For example, here is our source code:
+<pre><code>&lt;dialog character=raisehand pos=left msg=&quot;Are we the reason you wanted custom components?&quot;&gt;&lt;/dialog&gt;
+&lt;dialog character=bulb pos=right msg=&quot;Bingo. Here is our source code: &lt;pre&gt;&lt;code&gt;stack overflow&lt;/code&gt;&lt;/pre&gt;&quot;&gt;&lt;/dialog&gt;</code></pre>
+</Dialog>
 
 To achieve that, I've added a new crate: [lol-html](https://crates.io/crates/lol-html). CloudFlare developed this to power its Workers:
 
@@ -418,19 +384,14 @@ pub async fn page() -> Markup {
 }
 ```
 
-<image png="https://assets.anto.pt/articles/rsc/enhanced_sample_page.png" webp="https://assets.anto.pt/articles/rsc/enhanced_sample_page.webp" avif="https://assets.anto.pt/articles/rsc/enhanced_sample_page.avif"></image>
+<RemoteImage png="https://assets.anto.pt/articles/rsc/enhanced_sample_page.png" webp="https://assets.anto.pt/articles/rsc/enhanced_sample_page.webp" avif="https://assets.anto.pt/articles/rsc/enhanced_sample_page.avif"></RemoteImage>
 
-<dialog
-    parse="markdown"
-    pos=right
-    character=finger
-    msg="
+<Dialog pos=right character=finger>
 Unfortunately due to the streaming-oriented nature of lol-html, I was
 unable to utilize it to replace components' inner content. You may create a
-component that looks like this: `<alert msg=foo></alert>`;
-but not `<alert>foo</alert>`.
-    ">
-</dialog>
+component that looks like this: <code>&lt;alert msg=foo&gt;&lt;/alert&gt;</code>;
+but not <code>&lt;alert&gt;foo&lt;/alert&gt;</code>.
+</Dialog>
 
 ## Going interactive
 
@@ -466,7 +427,7 @@ pub async fn page() -> Markup {
 
 ```
 
-<image png="https://assets.anto.pt/articles/rsc/sample_page_counter.png" webp="https://assets.anto.pt/articles/rsc/sample_page_counter.webp" avif="https://assets.anto.pt/articles/rsc/sample_page_counter.avif"></image>
+<RemoteImage png="https://assets.anto.pt/articles/rsc/sample_page_counter.png" webp="https://assets.anto.pt/articles/rsc/sample_page_counter.webp" avif="https://assets.anto.pt/articles/rsc/sample_page_counter.avif"></RemoteImage>
 
 Clicking the button doesn't do anything, yet.
 
@@ -556,7 +517,7 @@ pub async fn page() -> Markup {
 
 And just like that, it works:
 
-<image png="https://assets.anto.pt/articles/rsc/sample_page_counter_working.png" webp="https://assets.anto.pt/articles/rsc/sample_page_counter_working.webp" avif="https://assets.anto.pt/articles/rsc/sample_page_counter_working.avif"></image>
+<RemoteImage png="https://assets.anto.pt/articles/rsc/sample_page_counter_working.png" webp="https://assets.anto.pt/articles/rsc/sample_page_counter_working.webp" avif="https://assets.anto.pt/articles/rsc/sample_page_counter_working.avif"></RemoteImage>
 
 This is not an htmx lesson. I just wanted to show the benefit of using the same code (`counter()`) on both a "regular page" and an htmx endpoint.
 
@@ -572,9 +533,9 @@ In my blog, I didn't want to wait for the database query that gives the number o
 
 Consider our earlier `counter()` component; imagine retrieving that number from a third-party service taking 500ms. After the crucial content, we should let the client fetch the `counter()` component lazily.
 
-<image avif="https://assets.anto.pt/articles/rsc/exc2.avif"
+<RemoteImage avif="https://assets.anto.pt/articles/rsc/exc2.avif"
     webp="https://assets.anto.pt/articles/rsc/exc2.webp"
-    png="https://assets.anto.pt/articles/rsc/exc2.png"></image>
+    png="https://assets.anto.pt/articles/rsc/exc2.png"></RemoteImage>
 
 We can use htmx, and it's much simpler than you may imagine. First, I'll create a new `GET /components/counter` route that just returns the counter component:
 

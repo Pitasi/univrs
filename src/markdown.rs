@@ -1,8 +1,12 @@
-use crate::rsc;
-use comrak::{
-    markdown_to_html_with_plugins, plugins::syntect::SyntectAdapter, ComrakOptions, ComrakPlugins,
-};
 use std::fs::read_to_string;
+
+use rscx::{component, html, props};
+use rscx_mdx::mdx::{Mdx, MdxComponentProps, MdxProps};
+
+use crate::{
+    components::md::{Dialog, DialogProps},
+    images::{RemoteImg, RemoteImgProps, Srcset},
+};
 
 pub struct MarkdownFile {
     pub name: String,
@@ -38,37 +42,61 @@ fn parse_frontmatter(input: &str) -> (frontmatter::Yaml, &str) {
     (fm.unwrap(), content)
 }
 
-pub fn parse(s: &str) -> String {
-    let options = ComrakOptions {
-        parse: comrak::ComrakParseOptions {
-            ..comrak::ComrakParseOptions::default()
-        },
+async fn handler(name: String, props: MdxComponentProps) -> String {
+    match name.as_str() {
+        "Dialog" => {
+            let character = props.attributes.get("character").unwrap().clone().unwrap();
+            let pos = props.attributes.get("pos").unwrap().clone().unwrap();
+            html! {
+                <Dialog character=character pos=pos>
+                    {props.children}
+                </Dialog>
+            }
+        }
+        "RemoteImage" => {
+            let avif = props.attributes.get("avif").map(|v| v.clone().unwrap());
+            let webp = props.attributes.get("webp").map(|v| v.clone().unwrap());
+            let png = props.attributes.get("png").map(|v| v.clone().unwrap());
+            let jpeg = props.attributes.get("jpeg").map(|v| v.clone().unwrap());
+            let svg = props.attributes.get("svg").map(|v| v.clone().unwrap());
+            let srcset = Srcset {
+                avif,
+                webp,
+                png,
+                jpeg,
+                svg,
+            };
 
-        extension: comrak::ComrakExtensionOptions {
-            autolink: true,
-            table: true,
-            description_lists: true,
-            superscript: true,
-            strikethrough: true,
-            footnotes: true,
-            ..comrak::ComrakExtensionOptions::default()
-        },
+            let alt = props
+                .attributes
+                .get("alt")
+                .map_or(String::new(), |v| v.clone().unwrap());
+            let class = props
+                .attributes
+                .get("alt")
+                .map_or(String::new(), |v| v.clone().unwrap());
 
-        render: comrak::ComrakRenderOptions {
-            unsafe_: true,
-            ..comrak::ComrakRenderOptions::default()
-        },
-    };
-    let mut plugins = ComrakPlugins::default();
+            let res = html! {
+                <RemoteImg srcset=srcset alt=alt class=class />
+            };
 
-    let adapter = SyntectAdapter::new("InspiredGitHub");
-    plugins.render.codefence_syntax_highlighter = Some(&adapter);
-
-    let html = markdown_to_html_with_plugins(s, &options, &plugins);
-    html
+            res
+        }
+        _ => {
+            eprintln!("unknown component: {}", name);
+            String::new()
+        }
+    }
 }
 
-pub fn parse_with_custom_components(s: &str) -> String {
-    let html = parse(s);
-    rsc::render(&html)
+#[props]
+pub struct MarkdownProps {
+    source: String,
+}
+
+#[component]
+pub async fn Markdown(props: MarkdownProps) -> String {
+    html! {
+        <Mdx handler=handler source=props.source />
+    }
 }

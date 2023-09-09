@@ -1,7 +1,7 @@
+use rscx::*;
 use std::fmt::Write;
 use std::fs;
 use std::path::{Path, PathBuf};
-use sycamore::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum ImageSrc {
@@ -121,7 +121,7 @@ pub fn search_available_sources(file_path: &str) -> Vec<ImageSrc> {
     sources
 }
 
-#[derive(Props)]
+#[props]
 pub struct StaticImgProps {
     path: String,
     alt: String,
@@ -129,16 +129,18 @@ pub struct StaticImgProps {
 }
 
 #[component]
-pub fn StaticImg<G: Html>(cx: Scope, props: StaticImgProps) -> View<G> {
+pub fn StaticImg(props: StaticImgProps) -> String {
     let sources = search_available_sources(&props.path);
     if sources.is_empty() {
         panic!("couldn't find any image source for {}", props.path);
     }
 
-    view! { cx, Image(sources=sources, alt=props.alt, class=props.class) }
+    html! {
+        <Image sources=sources alt=props.alt class=props.class />
+    }
 }
 
-#[derive(Props)]
+#[props]
 pub struct RemoteImgProps {
     srcset: Srcset,
     alt: String,
@@ -146,12 +148,14 @@ pub struct RemoteImgProps {
 }
 
 #[component]
-pub fn RemoteImg<G: Html>(cx: Scope, props: RemoteImgProps) -> View<G> {
+pub async fn RemoteImg(props: RemoteImgProps) -> String {
     let sources: Vec<ImageSrc> = props.srcset.into();
-    view! { cx, Image(sources=sources, alt=props.alt, class=props.class) }
+    html! {
+        <Image sources=sources alt=props.alt class=props.class />
+    }
 }
 
-#[derive(Props)]
+#[props]
 pub struct ImageProps {
     sources: Vec<ImageSrc>,
     alt: String,
@@ -159,25 +163,23 @@ pub struct ImageProps {
 }
 
 #[component]
-pub fn Image<G: Html>(cx: Scope, mut props: ImageProps) -> View<G> {
+pub async fn Image(mut props: ImageProps) -> String {
     if props.sources.is_empty() {
         panic!("there must be at least one source");
     }
 
     let fallback = props.sources.pop().unwrap();
 
-    let sources_elements = View::new_fragment(
-        props
-            .sources
-            .into_iter()
-            .map(|s| {
-                let mime_type = s.mime_type();
-                view! { cx,
-                    source(srcset=s.path(), type=mime_type) {}
-                }
-            })
-            .collect::<Vec<_>>(),
-    );
+    let sources_elements = props
+        .sources
+        .into_iter()
+        .map(|s| {
+            let mime_type = s.mime_type();
+            html! {
+                <source srcset=s.path() type=mime_type />
+            }
+        })
+        .collect_fragment();
 
     let mut class = String::new();
     if props.class.contains("h-full") {
@@ -187,16 +189,15 @@ pub fn Image<G: Html>(cx: Scope, mut props: ImageProps) -> View<G> {
         class.write_str("w-full ").unwrap();
     }
 
-    view! { cx,
-        picture(class=class) {
-            (sources_elements)
-            img(
-                src=fallback.path(),
-                class=props.class,
-                alt=props.alt,
-                loading="lazy",
+    html! {
+        <picture class=class>
+            {sources_elements}
+            <img src=fallback.path()
+                class=props.class
+                alt=props.alt
+                loading="lazy"
                 decoding="async"
-            )
-        }
+            />
+        </picture>
     }
 }

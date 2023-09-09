@@ -1,17 +1,12 @@
-use axum::{
-    extract::Query,
-    http::{self, HeaderMap},
-    response::IntoResponse,
-    Extension, Form,
-};
+use axum::{extract::Query, http::HeaderMap, response::IntoResponse, Extension, Form};
+use rscx::{component, html, props, EscapeAttribute};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
-use sycamore::prelude::*;
 
 use crate::{
-    icons::Heart,
+    icons::{Heart, HeartProps},
+    meta::render_with_meta,
     pages::auth::{AuthContext, User},
-    root,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -93,7 +88,7 @@ async fn theasyncwrapper(
     (count, has_like, payload)
 }
 
-#[derive(Props)]
+#[props]
 pub struct HeartButtonProps {
     pub count: String,
     pub has_like: bool,
@@ -101,21 +96,24 @@ pub struct HeartButtonProps {
 }
 
 #[component]
-fn HeartButton<G: Html>(cx: Scope, props: HeartButtonProps) -> View<G> {
-    view! { cx,
-        button(
-            class="inline-flex items-center justify-center text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset0 disabled:opacity-50 disabled:pointer-events-none bg-transparent hover:bg-slate-100 data-[state=open]:bg-transparent h-9 px-2 rounded-md",
-            hx-post="/components/like-btn",
-            hx-trigger="click",
-            hx-target="this",
-            hx-swap="outerHTML",
-            hx-vals=props.payload,
-            data-loading-disable=true) {
-                div(class="flex flex-row items-center justify-center gap-2 font-neu text-3xl font-semibold") {
-                    Heart(filled=props.has_like)
-                    span(class="translate-y-0.5") { (props.count) }
-                }
-        }
+async fn HeartButton(props: HeartButtonProps) -> String {
+    html! {
+        <button
+            class="inline-flex items-center justify-center text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset0 disabled:opacity-50 disabled:pointer-events-none bg-transparent hover:bg-slate-100 data-[state=open]:bg-transparent h-9 px-2 rounded-md"
+            hx-post="/components/like-btn"
+            hx-trigger="click"
+            hx-target="this"
+            hx-swap="outerHTML"
+            hx-vals=props.payload
+            data-loading-disable=true
+        >
+            <div class="flex flex-row items-center justify-center gap-2 font-neu text-3xl font-semibold">
+                <Heart filled=props.has_like />
+                <span class="translate-y-0.5">
+                    {props.count}
+                </span>
+            </div>
+        </button>
     }
 }
 
@@ -136,11 +134,17 @@ pub async fn handler_get(
     Extension(pool): Extension<PgPool>,
     query: Query<PageLikeBtnQuery>,
 ) -> impl IntoResponse {
-    let (count, has_like, payload) =
-        theasyncwrapper(pool, auth.current_user, &query.url, false).await;
-    root! {
-        HeartButton(count=count.to_string(), has_like=has_like, payload=payload)
-    }
+    render_with_meta(
+        || {},
+        || async move {
+            let (count, has_like, payload) =
+                theasyncwrapper(pool, auth.current_user, &query.url, false).await;
+            html! {
+                <HeartButton count=count.to_string() has_like=has_like payload=payload />
+            }
+        },
+    )
+    .await
 }
 
 pub async fn handler_post(
@@ -154,13 +158,18 @@ pub async fn handler_post(
         header_map.insert("HX-Redirect", redirect.parse().unwrap());
     }
 
-    let (count, has_like, payload) =
-        theasyncwrapper(pool, auth.current_user, &payload.url, true).await;
-
     (
         header_map,
-        root! {
-            HeartButton(count=count.to_string(), has_like=has_like, payload=payload)
-        },
+        render_with_meta(
+            || {},
+            || async move {
+                let (count, has_like, payload) =
+                    theasyncwrapper(pool, auth.current_user, &payload.url, true).await;
+                html! {
+                    <HeartButton count=count.to_string() has_like=has_like payload=payload />
+                }
+            },
+        )
+        .await,
     )
 }

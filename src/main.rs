@@ -7,10 +7,10 @@ pub mod hash;
 pub mod icons;
 pub mod images;
 pub mod markdown;
+pub mod meta;
 pub mod pages;
 pub mod rsc;
 pub mod social_img;
-pub mod sycamore;
 
 use axum::{
     http::Request,
@@ -116,7 +116,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let oauth_client = build_oauth_client();
 
-    let articles_repo = ArticlesRepo::new();
+    let articles_repo = ArticlesRepo::new().await;
     let apps_repo = AppsRepo::new(pool.clone());
 
     let app = Router::new()

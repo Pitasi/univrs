@@ -7,13 +7,19 @@ use axum::{
     response::{IntoResponse, Response},
     Extension,
 };
-use sycamore::prelude::*;
+use rscx::{
+    component,
+    context::{expect_context, provide_context},
+    html, props, CollectFragmentAsync,
+};
 
 use crate::{
     articles::{Article, ArticlesRepo},
-    components::layout::{Header, Layout, MetaOGImage, SecondarySidebar, SidebarNavItem},
-    root,
-    sycamore::{Dedup, Metatag, Title},
+    components::layout::{
+        Header, HeaderProps, Layout, LayoutProps, MetaOGImage, MetaOGImageProps, SecondarySidebar,
+        SecondarySidebarProps, SidebarNavItem, SidebarNavItemProps,
+    },
+    meta::{render_with_meta, Dedup, DedupProps},
 };
 
 use super::auth::AuthContext;
@@ -23,14 +29,20 @@ pub async fn page_articles(
     Extension(auth): Extension<AuthContext>,
     Extension(articles_repo): Extension<ArticlesRepo>,
 ) -> impl IntoResponse {
-    root! {
-        (uri, auth, articles_repo),
-        Metatag(name="description".into(), attr:content="Antonio's articles on various topics related to software engineering and technology.") {}
-        Title { "Articles - Antonio Pitasi" }
-        Layout {
-            Articles {}
+    render_with_meta(
+        || {
+            provide_context(uri);
+            provide_context(auth);
+            provide_context(articles_repo);
+        },
+        || async {
+            html! {
+                <Layout title="Articles - Antonio Pitasi" description="Antonio's articles on various topics related to software engineering and technology.">
+                    <Articles>""</Articles>
+                </Layout>
+            }
         }
-    }
+    ).await
 }
 
 pub async fn articles_rss(Extension(articles_repo): Extension<ArticlesRepo>) -> impl IntoResponse {
@@ -84,49 +96,60 @@ pub async fn articles_rss(Extension(articles_repo): Extension<ArticlesRepo>) -> 
     feed.to_string()
 }
 
-#[derive(Props)]
-pub struct ArticlesProps<'a, G: Html> {
-    children: Option<Children<'a, G>>,
+#[props]
+pub struct ArticlesProps {
+    children: String,
 }
 
 #[component]
-pub fn Articles<'a, G: Html>(cx: Scope<'a>, props: ArticlesProps<'a, G>) -> View<G> {
-    let repo = use_context::<ArticlesRepo>(cx);
-    let v = View::new_fragment(repo
+pub fn Articles(props: ArticlesProps) -> String {
+    let repo = expect_context::<ArticlesRepo>();
+    let v = repo
         .list()
         .into_iter()
-        .map(|article| {
+        .map(|article| async move {
             let href = format!("/articles/{}", article.slug);
-            let c = view! {
-                cx,
-                div(class="flex flex-col") {
-                    span(class="font-semibold"){ (article.title.clone()) }
-                    span(class="opacity-60"){ (article.datetime.format("%B %d, %Y").to_string()) }
-                }
+            let title = &article.title;
+            let c = html! {
+                <div class="flex flex-col">
+                    <span class="font-semibold">
+                        {title}
+                    </span>
+                    <span class="opacity-60">
+                        {article.datetime.format("%B %d, %Y").to_string()}
+                    </span>
+                </div>
             };
 
-            view! { cx, SidebarNavItem(href={href}){(c)} }
-        })
-        .collect()
-    );
-
-    let children = props.children.map(|children| {
-        let inner = children.call(cx);
-        view! { cx,
-            div(class="absolute inset-0 lg:static empty:hidden") {
-                (inner)
+            html! {
+                <SidebarNavItem href=href>
+                    {c}
+                </SidebarNavItem>
             }
-        }
-    });
+        })
+        .collect_fragment_async()
+        .await;
 
-    view! { cx,
-        Dedup(key="atom".into()) {
-            link(rel="alternate",type="application/atom+xml", title="RSS Feed for anto.pt articles", href="/articles/atom.xml")
+    let children = if !props.children.is_empty() {
+        html! {
+            <div class="absolute inset-0 lg:static empty:hidden">
+                {props.children}
+            </div>
         }
-        div(class="relative h-full w-full flex-row lg:grid lg:grid-cols-[20rem_minmax(0,1fr)]") {
-            SecondarySidebar(title="Articles".into()) {(v)}
-            (children)
-        }
+    } else {
+        html! {}
+    };
+
+    html! {
+        <Dedup id="atom".to_string()>
+            <link rel="alternate" type="application/atom+xml" title="RSS Feed for anto.pt articles" href="/articles/atom.xml" />
+        </Dedup>
+        <div class="relative h-full w-full flex-row lg:grid lg:grid-cols-[20rem_minmax(0,1fr)]">
+            <SecondarySidebar title="Articles".into()>
+                {v}
+            </SecondarySidebar>
+            {children}
+        </div>
     }
 }
 
@@ -147,46 +170,52 @@ pub async fn page_article(
         article.slug.clone()
     );
 
-    root! {
-        (uri, auth, articles_repo),
-        Metatag(name="description".into(), attr:content="Antonio's articles on various topics related to software engineering and technology.") {}
-        Title { (title) }
-        MetaOGImage(content=og_image) {}
-        Layout {
-            Articles {
-                ArticleContent(a=article) {}
-            }
+    render_with_meta(|| {
+        provide_context(uri);
+        provide_context(auth);
+        provide_context(articles_repo);
+    }, || async {
+        html! {
+            <Layout title=title description="Antonio's articles on various topics related to software engineering and technology." head=html!{
+                <MetaOGImage content=og_image />
+            }>
+                <Articles>
+                    <ArticleContent a=article />
+                </Articles>
+            </Layout>
         }
-    }.into_response()
+    })
+    .await
+    .into_response()
 }
 
-#[derive(Props)]
+#[props]
 pub struct ArticleContentProps {
     a: Article,
 }
 
 #[component]
-fn ArticleContent<G: Html>(cx: Scope, props: ArticleContentProps) -> View<G> {
-    let title = props.a.title.clone();
-
-    view! { cx,
-        main(class="typography relative min-h-full bg-floralwhite pb-24 lg:pb-0") {
-            Header(title=title) {}
-            article(class="w-full bg-floralwhite p-8") {
-                div(class="mx-auto max-w-2xl") {
-                    div(class="flex flex-col gap-3") {
-                        h1(class="title font-neu font-semibold text-darkviolet text-4xl") {
-                            (props.a.title)
-                        }
-                        div(class="flex flex-row") {
-                            span(class="text-gray-500") {
-                                "Written on "(props.a.datetime.format("%B %d, %Y").to_string())"."
-                            }
-                        }
-                    }
-                    div(class="mt-4", dangerously_set_inner_html=props.a.content.clone()) { }
-                }
-            }
-        }
+fn ArticleContent(props: ArticleContentProps) -> String {
+    html! {
+        <main class="typography relative min-h-full bg-floralwhite pb-24 lg:pb-0">
+            <Header title=props.a.title.clone() />
+            <article class="w-full bg-floralwhite p-8">
+                <div class="mx-auto max-w-2xl">
+                    <div class="flex flex-col gap-3">
+                        <h1 class="title font-neu font-semibold text-darkviolet text-4xl">
+                            {props.a.title}
+                        </h1>
+                        <div class="flex flex-row">
+                            <span class="text-gray-500">
+                                "Written on " {props.a.datetime.format("%B %d, %Y").to_string()} "."
+                            </span>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        {props.a.content}
+                    </div>
+                </div>
+            </article>
+        </main>
     }
 }
