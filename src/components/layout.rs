@@ -10,11 +10,10 @@ use stylist::style;
 use crate::{
     hash,
     icons::{
-        App, AppProps, Burger, BurgerProps, Heart, HeartProps, Home, HomeProps, Logout,
-        LogoutProps, Notebook, NotebookProps, SmallX, SmallXProps,
+        App, Burger, Heart, Home, Logout, Notebook, SmallX,
     },
-    images::{StaticImg, StaticImgProps},
-    meta::{Dedup, DedupProps, MetaContextRender, MetaContextRenderProps},
+    images::{StaticImg},
+    meta::{Dedup, MetaContextRender},
     pages::auth::AuthContext,
 };
 

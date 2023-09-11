@@ -8,11 +8,11 @@ use rscx::{
 use crate::{
     apps::{App, AppsRepo},
     components::layout::{
-        Header, HeaderProps, Layout, LayoutProps, SecondarySidebar, SecondarySidebarProps,
-        SidebarNavItem, SidebarNavItemProps,
+        Header, Layout, SecondarySidebar,
+        SidebarNavItem,
     },
-    icons::{Heart, HeartProps, Link, LinkProps},
-    images::{Image, ImageProps},
+    icons::{Heart, Link},
+    images::{Image},
     meta::render_with_meta,
 };
 

@@ -16,10 +16,9 @@ use rscx::{
 use crate::{
     articles::{Article, ArticlesRepo},
     components::layout::{
-        Header, HeaderProps, Layout, LayoutProps, MetaOGImage, MetaOGImageProps, SecondarySidebar,
-        SecondarySidebarProps, SidebarNavItem, SidebarNavItemProps,
+        Header, Layout, MetaOGImage, SecondarySidebar, SidebarNavItem,
     },
-    meta::{render_with_meta, Dedup, DedupProps},
+    meta::{render_with_meta, Dedup},
 };
 
 use super::auth::AuthContext;

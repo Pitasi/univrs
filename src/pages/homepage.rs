@@ -5,9 +5,9 @@ use rscx::{
 };
 
 use crate::{
-    components::layout::{Layout, LayoutProps},
-    icons::{Github, GithubProps, LinkedIn, LinkedInProps, Twitter, TwitterProps},
-    images::{StaticImg, StaticImgProps},
+    components::layout::{Layout},
+    icons::{Github, LinkedIn, Twitter},
+    images::{StaticImg},
     meta::render_with_meta,
     AuthContext,
 };

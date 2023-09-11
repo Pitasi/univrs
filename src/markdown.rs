@@ -1,11 +1,11 @@
 use std::fs::read_to_string;
 
 use rscx::{component, html, props};
-use rscx_mdx::mdx::{Mdx, MdxComponentProps, MdxProps};
+use rscx_mdx::mdx::{Mdx, MdxComponentProps};
 
 use crate::{
-    components::md::{Dialog, DialogProps},
-    images::{RemoteImg, RemoteImgProps, Srcset},
+    components::md::{Dialog},
+    images::{RemoteImg, Srcset},
 };
 
 pub struct MarkdownFile {

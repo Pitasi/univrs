@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
 use crate::{
-    icons::{Heart, HeartProps},
+    icons::{Heart},
     meta::render_with_meta,
     pages::auth::{AuthContext, User},
 };

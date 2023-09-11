@@ -25,7 +25,7 @@ paste = "1.0.13"
 rand = { version = "0.8.5", features = ["min_const_gen"] }
 reqwest = { version = "0.11.18", features = ["json"] }
 ring = "0.16.20"
-rscx = { version = "0.1.7", features = ["axum"] }
+rscx = { version = "0.1.8", features = ["axum"] }
 rscx-mdx = { version = "0.1.2" }
 rusttype = "0.9.3"
 serde = "1.0.171"

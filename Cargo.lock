@@ -3026,9 +3026,9 @@ dependencies = [
 
 [[package]]
 name = "rscx"
-version = "0.1.6"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "31f8001616f174f6c7de526be29c75dd16dece3ce570cb55d834d0434fd229c5"
+checksum = "2f0afd4fcc018a1fc3ec69546757369674a1b2ba726e95a9e7ed6db8205745eb"
 dependencies = [
  "async-trait",
  "axum",
@@ -3042,9 +3042,9 @@ dependencies = [
 
 [[package]]
 name = "rscx-macros"
-version = "0.1.6"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "36ef2022ea237c8329fc57fbbf80e3602bfd842cfcfd84b137d773df0a841dbf"
+checksum = "526a714fc9130cabd2f87fa88e65fb088780e409326ac9ab88954356961a0385"
 dependencies = [
  "convert_case",
  "html-escape",
@@ -3057,9 +3057,9 @@ dependencies = [
 
 [[package]]
 name = "rscx-mdx"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef95e84ba8ce2a3d3473ee3fb53be3ad029f7bcc91995768661ecd82e544407e"
+checksum = "ec681229c4cbec2c6549cdf9397efd14f5b9a975a9276eebdb633502bcb2a42d"
 dependencies = [
  "async-recursion",
  "async-trait",

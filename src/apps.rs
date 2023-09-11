@@ -4,7 +4,7 @@ use sqlx::{FromRow, PgPool};
 
 use crate::{
     images::ImageSrc,
-    markdown::{Markdown, MarkdownProps},
+    markdown::{Markdown},
 };
 
 #[derive(Debug, FromRow)]

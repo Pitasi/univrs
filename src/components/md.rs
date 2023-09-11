@@ -1,6 +1,6 @@
 use rscx::{component, html, props, EscapeAttribute};
 
-use crate::images::{StaticImg, StaticImgProps};
+use crate::images::{StaticImg};
 
 #[props]
 pub struct DialogProps {

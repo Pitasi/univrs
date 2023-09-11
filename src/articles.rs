@@ -1,7 +1,7 @@
 use chrono::{DateTime, FixedOffset};
 use rscx::html;
 
-use crate::markdown::{load_dir, Markdown, MarkdownProps};
+use crate::markdown::{load_dir, Markdown};
 
 #[derive(Clone, Debug)]
 pub struct Article {
