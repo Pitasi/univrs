@@ -2,10 +2,7 @@ use futures::future::join_all;
 use rscx::html;
 use sqlx::{FromRow, PgPool};
 
-use crate::{
-    images::ImageSrc,
-    markdown::{Markdown},
-};
+use crate::{images::ImageSrc, markdown::Markdown};
 
 #[derive(Debug, FromRow)]
 pub struct AppRow {

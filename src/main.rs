@@ -2,6 +2,7 @@
 
 pub mod apps;
 pub mod articles;
+pub mod bookmarks;
 pub mod components;
 pub mod hash;
 pub mod icons;
@@ -21,7 +22,7 @@ use axum::{
 };
 use axum_login::{
     axum_sessions::{async_session::MemoryStore as SessionMemoryStore, SameSite, SessionLayer},
-    AuthLayer, PostgresStore,
+    AuthLayer, PostgresStore, RequireAuthorizationLayer,
 };
 use oauth2::{
     basic::BasicClient, AuthType, AuthUrl, ClientId, ClientSecret, RedirectUrl, TokenUrl,
@@ -44,7 +45,7 @@ use tower_http::{
 use tower_livereload::LiveReloadLayer;
 use tracing::Level;
 
-use crate::{apps::AppsRepo, articles::ArticlesRepo, pages::auth::Role};
+use crate::{apps::AppsRepo, articles::ArticlesRepo, bookmarks::BookmarksRepo, pages::auth::Role};
 
 fn not_htmx<Body>(req: &Request<Body>) -> bool {
     !req.headers().contains_key("hx-request")
@@ -118,6 +119,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let articles_repo = ArticlesRepo::new().await;
     let apps_repo = AppsRepo::new(pool.clone());
+    let bookmarks_repo = BookmarksRepo::new(pool.clone());
 
     let app = Router::new()
         .nest_service("/static", files)
@@ -137,22 +139,36 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route("/uses/", get(pages::apps::handler))
         .route("/uses/:slug", get(pages::apps::handler_app))
         .route("/uses/:slug/", get(pages::apps::handler_app))
+        // Bookmarks
+        .route("/bookmarks", get(pages::bookmarks::handler))
+        .route("/bookmarks/", get(pages::bookmarks::handler))
+        .route("/bookmarks/:slug", get(pages::bookmarks::handler_bookmark))
+        .route("/bookmarks/:slug/", get(pages::bookmarks::handler_bookmark))
         .route(
             "/articles/:slug/social-image.png",
             get(social_img::social_image_article),
         );
 
+    let admin_router = Router::new();
+    let admin_router = pages::admin::bookmarks::register(admin_router);
+    #[cfg(not(debug_assertions))]
+    let admin_router = admin_router.layer(RequireAuthorizationLayer::<i64, User, Role>::login());
+
     let components = Router::new()
         .route("/like-btn", get(components::heart::handler_get))
         .route("/like-btn", post(components::heart::handler_post));
 
-    let router = Router::new().nest("/", app).nest("/components", components);
+    let router = Router::new()
+        .nest("/", app)
+        .nest("/admin", admin_router)
+        .nest("/components", components);
 
     let router = router
         .layer(Extension(pool))
         .layer(Extension(oauth_client))
         .layer(Extension(articles_repo))
         .layer(Extension(apps_repo))
+        .layer(Extension(bookmarks_repo))
         .layer(auth_layer)
         .layer(session_layer);
 

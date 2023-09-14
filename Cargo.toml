@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+async-trait = "0.1.73"
 atom_syndication = "0.12.2"
 axum = "0.6"
 axum-login = { version = "0.5.0", features = ["sqlx", "postgres"] }
@@ -28,9 +29,10 @@ ring = "0.16.20"
 rscx = { version = "0.1.8", features = ["axum"] }
 rscx-mdx = { version = "0.1.2" }
 rusttype = "0.9.3"
+scraper = "0.17.1"
 serde = "1.0.171"
 serde_json = "1.0.102"
-sqlx = { version = "0.6.1", features = ["postgres", "runtime-tokio-rustls"] }
+sqlx = { version = "0.6.1", features = ["postgres", "chrono", "runtime-tokio-rustls"] }
 stylist = { version = "0.12.1", features = ["ssr"] }
 tokio = { version = "1", features = ["full"] }
 tokio-util = { version = "0.7.8", features = ["rt"] }

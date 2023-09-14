@@ -9,10 +9,8 @@ use stylist::style;
 
 use crate::{
     hash,
-    icons::{
-        App, Burger, Heart, Home, Logout, Notebook, SmallX,
-    },
-    images::{StaticImg},
+    icons::{App, Burger, Heart, Home, Logout, Notebook, SmallX},
+    images::StaticImg,
     meta::{Dedup, MetaContextRender},
     pages::auth::AuthContext,
 };

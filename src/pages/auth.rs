@@ -1,7 +1,9 @@
 use std::env;
 
+use async_trait::async_trait;
 use axum::{
-    extract::Query,
+    extract::{FromRequestParts, Query},
+    http::request::Parts,
     response::{IntoResponse, Redirect},
     Extension,
 };
@@ -46,6 +48,42 @@ impl AuthUser<i64, Role> for User {
 
     fn get_role(&self) -> Option<Role> {
         Some(self.role.clone())
+    }
+}
+
+pub struct RequireAdmin(pub User);
+
+#[async_trait]
+impl<S> FromRequestParts<S> for RequireAdmin
+where
+    S: Send + Sync,
+{
+    type Rejection = StatusCode;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        #[cfg(debug_assertions)]
+        {
+            return Ok(RequireAdmin(User {
+                id: 1,
+                role: Role::Admin,
+                email: "admin@localhost".into(),
+                username: Some("admin".to_string()),
+                picture: None,
+            }));
+        }
+
+        let Extension(user): Extension<User> = Extension::from_request_parts(parts, state)
+            .await
+            .map_err(|_err| StatusCode::FORBIDDEN)?;
+
+        if user
+            .get_role()
+            .map_or(false, |role| matches!(role, Role::Admin))
+        {
+            Ok(RequireAdmin(user))
+        } else {
+            Err(StatusCode::FORBIDDEN)
+        }
     }
 }
 
