@@ -148,24 +148,26 @@ fn BookmarkContent(props: BookmarkContentProps) -> String {
                             {props.bookmark.title}
                         </h1>
 
-                        <p class="flex flex-row opacity-60 items-center text-sm">
-                            {
-                                props.bookmark.favicon.map_or(
-                                    html! {
-                                        <div class="block rounded-sm bg-gray-500 w-6 h-6 mr-2 shrink-0" />
-                                    },
-                                    |favicon| html! {
-                                        <img src=favicon alt="Favicon" class="block rounded-sm w-6 h-6 mr-2" />
-                                    },
-                                )
-                            }
-                            {&props.bookmark.hostname}
-                        </p>
+                        <a href=&props.bookmark.url target="_blank">
+                            <p class="flex flex-row opacity-60 items-center text-sm">
+                                {
+                                    props.bookmark.favicon.map_or(
+                                        html! {
+                                            <span class="rounded-sm bg-gray-500 w-6 h-6 mr-2 shrink-0" />
+                                        },
+                                        |favicon| html! {
+                                            <img src=favicon alt="Favicon" class="block rounded-sm w-6 h-6 mr-2" />
+                                        },
+                                    )
+                                }
+                                <span>{&props.bookmark.hostname}</span>
+                            </p>
+                        </a>
 
-                        <p>
-                            <span class="opacity-60">
-                                Written on {&props.bookmark.posted_at.format("%B %e, %Y")}, bookmarked on {&props.bookmark.created_at.format("%B %e, %Y")}.
-                            </span>
+                        <p class="opacity-60">
+                            Written on {&props.bookmark.posted_at.format("%B %e, %Y")}.
+                            <br />
+                            Bookmarked on {&props.bookmark.created_at.format("%B %e, %Y")}.
                         </p>
                     </div>
 
