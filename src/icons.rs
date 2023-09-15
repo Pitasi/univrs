@@ -108,6 +108,15 @@ pub fn App() -> String {
 }
 
 #[component]
+pub fn Bookmark() -> String {
+    html! {
+        <svg class="mr-2 h-4 w-4" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path fill="currentColor" d="M5 21V5q0-.825.588-1.413T7 3h10q.825 0 1.413.588T19 5v16l-7-3l-7 3Z"/>
+        </svg>
+    }
+}
+
+#[component]
 pub fn Link() -> String {
     html! {
         <svg class="h-5 w-5 inline" width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">

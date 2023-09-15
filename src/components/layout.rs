@@ -9,7 +9,7 @@ use stylist::style;
 
 use crate::{
     hash,
-    icons::{App, Burger, Heart, Home, Logout, Notebook, SmallX},
+    icons::{App, Bookmark, Burger, Heart, Home, Logout, Notebook, SmallX},
     images::StaticImg,
     meta::{Dedup, MetaContextRender},
     pages::auth::AuthContext,
@@ -220,6 +220,7 @@ pub fn RootSidebarNav() -> String {
     let items = vec![
         ("/", "Home", Some(html! { <Home /> })),
         ("/articles", "Articles", Some(html! { <Notebook /> })),
+        ("/bookmarks", "Bookmarks", Some(html! { <Bookmark /> })),
         ("/uses", "Uses", Some(html! { <App /> })),
     ];
 
