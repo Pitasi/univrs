@@ -22,7 +22,7 @@ use axum::{
 };
 use axum_login::{
     axum_sessions::{async_session::MemoryStore as SessionMemoryStore, SameSite, SessionLayer},
-    AuthLayer, PostgresStore,
+    AuthLayer, PostgresStore, RequireAuthorizationLayer,
 };
 use oauth2::{
     basic::BasicClient, AuthType, AuthUrl, ClientId, ClientSecret, RedirectUrl, TokenUrl,
