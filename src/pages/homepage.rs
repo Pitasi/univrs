@@ -1,13 +1,12 @@
 use axum::{http, response::IntoResponse};
 use rscx::{
     component, context::provide_context, html, props, CollectFragment, CollectFragmentAsync,
-    EscapeAttribute,
 };
 
 use crate::{
-    components::layout::{Layout},
+    components::layout::Layout,
     icons::{Github, LinkedIn, Twitter},
-    images::{StaticImg},
+    images::StaticImg,
     meta::render_with_meta,
     AuthContext,
 };
@@ -39,16 +38,23 @@ fn Intro() -> String {
         <section class="typography">
             <p>
                 "I'm Antonio, a backend software engineer. I'm passionate about distributed
-                systems and clean maintainable software. In my free time, I organize events
-                with the local community I founded: "
+                systems and clean maintainable software."
+            </p>
+
+            <p>
+                "I now live in Madrid, but back when I was living in Italy I started a meetup community for developers called "
                 <a href="https://pisa.dev">pisa.dev</a>
                 "."
             </p>
 
             <p>
-                "I'm currently working on exciting technology at "
+                "I worked on custody platform for cryptocurrencies at "
                 <a href="https://qredo.com">Qredo</a>
-                ". We aim to decentralize the private keys for your cryptocurrencies using our dMPC solution. "
+                " and now I'm going beyond it with "
+                <a href="https://wardenprotocol.org">Warden Protocol</a>
+                ". I'm basically trying to make this saying obsolete: "
+                <em>"Not your keys, not your coins"</em>
+                "."
             </p>
 
             <p>
@@ -57,12 +63,13 @@ fn Intro() -> String {
                 " (also known as "
                 <a href="https://tendermint.com">Tendermint</a>
                 "), the company that first created "
-                <a href="https://blog.cosmos.network/cosmos-history-inception-to-prelaunch-b05bcb6a4b2b">Proof-of-Stake</a>
+                <a href="https://blog.cosmos.network/cosmos-history-inception-to-prelaunch-b05bcb6a4b2b">"Proof-of-Stake"</a>
                 " and "
                 <a href="https://cosmos.network/">Cosmos SDK</a>
                 ". My role was Senior Backend Engineed for the "
                 <em>(now defunct)</em>" "
                 <a href="https://emeris.com">Emeris</a>
+                "."
             </p>
 
             <p>
@@ -87,11 +94,18 @@ fn Intro() -> String {
 fn Work() -> String {
     let work_experiences = [
         (
+            "Warden Protocol",
+            "Core Developer",
+            "static/companies/wardenprotocol.jpg",
+            "2024",
+            "Present",
+        ),
+        (
             "Qredo",
             "Blockchain Engineer",
             "static/companies/qredo.webp",
             "2022",
-            "Present",
+            "2024",
         ),
         (
             "Ignite (fka Tendermint)",

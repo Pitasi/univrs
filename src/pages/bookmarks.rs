@@ -2,7 +2,7 @@ use axum::{extract::Path, http, response::IntoResponse, Extension};
 use rscx::{
     component,
     context::{expect_context, provide_context},
-    html, props, CollectFragmentAsync, EscapeAttribute,
+    html, props, CollectFragmentAsync,
 };
 
 use crate::{
@@ -165,9 +165,9 @@ fn BookmarkContent(props: BookmarkContentProps) -> String {
                         </a>
 
                         <p class="opacity-60">
-                            Written on {&props.bookmark.posted_at.format("%B %e, %Y")}.
+                            Written on {&props.bookmark.posted_at.format("%B %e, %Y").to_string()}.
                             <br />
-                            Bookmarked on {&props.bookmark.created_at.format("%B %e, %Y")}.
+                            Bookmarked on {&props.bookmark.created_at.format("%B %e, %Y").to_string()}.
                         </p>
                     </div>
 

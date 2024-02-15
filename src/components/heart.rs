@@ -1,10 +1,10 @@
 use axum::{extract::Query, http::HeaderMap, response::IntoResponse, Extension, Form};
-use rscx::{component, html, props, EscapeAttribute};
+use rscx::{component, html, props};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
 use crate::{
-    icons::{Heart},
+    icons::Heart,
     meta::render_with_meta,
     pages::auth::{AuthContext, User},
 };

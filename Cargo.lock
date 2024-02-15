@@ -1655,10 +1655,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "html_parser"
-version = "0.7.0"
+name = "html_parser_rscx"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6f56db07b6612644f6f7719f8ef944f75fff9d6378fdf3d316fd32194184abd"
+checksum = "85f1a05346b57644cd76a0eec1d231bc3a9973cb55595a400393e1f00c1f9781"
 dependencies = [
  "doc-comment",
  "pest",
@@ -3116,9 +3116,9 @@ dependencies = [
 
 [[package]]
 name = "rscx"
-version = "0.1.8"
+version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f0afd4fcc018a1fc3ec69546757369674a1b2ba726e95a9e7ed6db8205745eb"
+checksum = "a8b1ddbe7c83f6712210343fad6ed48397185c1160c27d7123298c082f613217"
 dependencies = [
  "async-trait",
  "axum",
@@ -3132,9 +3132,9 @@ dependencies = [
 
 [[package]]
 name = "rscx-macros"
-version = "0.1.8"
+version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "526a714fc9130cabd2f87fa88e65fb088780e409326ac9ab88954356961a0385"
+checksum = "0cec13a1715a3f721ea3096e29c3c7e5034339706d237d89d164e6ea90e69e97"
 dependencies = [
  "convert_case",
  "html-escape",
@@ -3147,15 +3147,15 @@ dependencies = [
 
 [[package]]
 name = "rscx-mdx"
-version = "0.1.2"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec681229c4cbec2c6549cdf9397efd14f5b9a975a9276eebdb633502bcb2a42d"
+checksum = "652ad340121da8f5ca0ba21cdb541c41ca2eee41b98116daca61ec7492384ecd"
 dependencies = [
  "async-recursion",
  "async-trait",
  "comrak",
  "frontmatter",
- "html_parser",
+ "html_parser_rscx",
  "rscx",
 ]
 

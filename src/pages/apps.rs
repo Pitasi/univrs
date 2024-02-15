@@ -2,17 +2,14 @@ use axum::{extract::Path, http, response::IntoResponse, Extension};
 use rscx::{
     component,
     context::{expect_context, provide_context},
-    html, props, CollectFragmentAsync, EscapeAttribute,
+    html, props, CollectFragmentAsync,
 };
 
 use crate::{
     apps::{App, AppsRepo},
-    components::layout::{
-        Header, Layout, SecondarySidebar,
-        SidebarNavItem,
-    },
+    components::layout::{Header, Layout, SecondarySidebar, SidebarNavItem},
     icons::{Heart, Link},
-    images::{Image},
+    images::Image,
     meta::render_with_meta,
 };
 

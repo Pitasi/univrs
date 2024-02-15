@@ -2,7 +2,7 @@ use axum::routing::post;
 use axum::Form;
 use axum::{extract::Query, http, response::IntoResponse, routing::get, Extension, Router};
 use reqwest::Url;
-use rscx::{context::provide_context, html, EscapeAttribute};
+use rscx::{context::provide_context, html};
 use scraper::{Html, Selector};
 use serde::Deserialize;
 

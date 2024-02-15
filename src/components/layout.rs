@@ -2,9 +2,7 @@ use std::{fs::File, io::BufReader};
 
 use axum::http::{self, Uri};
 use data_encoding::HEXLOWER;
-use rscx::{
-    component, context::expect_context, html, props, CollectFragmentAsync, EscapeAttribute,
-};
+use rscx::{component, context::expect_context, html, props, CollectFragmentAsync};
 use stylist::style;
 
 use crate::{
