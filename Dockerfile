@@ -24,7 +24,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry <<EOF
   cargo build --release
 EOF
 
-FROM debian:bullseye-slim AS app
+FROM debian:bookworm-slim AS app
 WORKDIR /app
 RUN apt-get update && apt-get install -y ca-certificates libssl-dev && apt-get clean
 
