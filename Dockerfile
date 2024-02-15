@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.3-labs
 
-FROM rust:1.71-slim AS build
+FROM rust:1.76-slim AS build
 
 RUN apt update && apt install -y \
   libpq-dev \
